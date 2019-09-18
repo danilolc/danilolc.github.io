@@ -23,12 +23,23 @@ class Rope {
 }
 
 //Globals -------------
-g = [];
-g.p = 0;
+var Sx = 640
+var Sy = 480
+
+var MaxS = 40;
+
+var gravity;
+var vel;
+var pos;
 
 //Setup ---------------
 function setup() {
-	resizeCanvas(640,480,1);
+	
+	gravity = createVector(0,0.098);
+	vel = createVector(5,0);
+	pos = createVector(0,0);
+	
+	resizeCanvas(Sx,Sy,1);
 	noStroke();
 	
 	a = new Knot(10, 10);
@@ -36,19 +47,26 @@ function setup() {
 	
 	print(a);
 	print(b);
+	
+	fill(224, 150, 0);
+	noStroke();
 }
 
 //Draw ----------------
 function draw() {
-	background(100);
+	background(200);
 	
-	g.p += 0.1;
+	vel.add(gravity);
+	pos.add(vel);
 	
-	fill(204, 102, 0);
-	noStroke();
-	rect(20*g.p, g.p*g.p, 20, 20); 
+	if (pos.y > Sy - 20 || pos.y < 0) {
+		vel.y = -vel.y * 1.1;
+	}
+	if (pos.x > Sx - 20 || pos.x < 0) {
+		vel.x = -vel.x * 1.1;
+	}
+	if (vel.mag() > MaxS)
+		vel.div(vel.mag() / MaxS)
 	
-	noFill();
-	stroke(0, 0, 0);
-	bezier(85, 20, 10*sin(g.p), 10, 90, 90, 15, 80);
+	rect(pos.x, pos.y, 20, 20); 
 }
