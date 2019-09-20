@@ -9,10 +9,23 @@ var Sy = 480;
 var Rad = 1.5;
 var Grav = 0.00002;
 
+var Epg = 0;
+var Epe = 0;
+var Ec = 0;
+
 var gravity = null;
 var rope = null;
 
 //Functions
+function method(pos, vel, acc) {
+
+	pos.x += vel.x;
+	pos.y += vel.y;
+	vel.x += acc.x;
+	vel.y += acc.y;
+
+}
+
 function drawV(v1, v2, u = false, magn = 10) {
 	
 	var a = v2.copy();
@@ -65,21 +78,30 @@ class Rope {
 			ly = e.pos.y;
 			
 			noStroke();
-			//ellipse(e.pos.x, e.pos.y, 2*Rad, 2*Rad);
+			ellipse(e.pos.x, e.pos.y, 2*Rad, 2*Rad);
 		})
 	}
 	
 	update() {
 		var delta = this.delta;
 		
+		//Ec = mv2/2
+		//Epg = mgh
+		//Epe = kx2/2
+		Ec = 0;
+		Epg = 0;
+		Epe = 0;
+	
 		this.knots.forEach(function(e,i,a){
+
 			if (!e.fixed) {
 				
 				//Update positions and velocities
-				e.pos.x += e.vel.x;
-				e.pos.y += e.vel.y;
-				e.vel.x += e.acc.x;
-				e.vel.y += e.acc.y;
+				//e.pos.x += e.vel.x;
+				//e.pos.y += e.vel.y;
+				//e.vel.x += e.acc.x;
+				//e.vel.y += e.acc.y;
+				method(e.pos, e.vel, e.acc);
 				
 				//Reset gravity
 				e.acc.set(gravity);
@@ -131,7 +153,12 @@ class Rope {
 				
 				//Define the stretch to colorize
 				e.stretch = x * 2;
-				
+			
+				//Calculate energy
+				Epe += K*x*x/2;
+				Ec += e.vel.magSq() / 2;
+				Epg += Grav * (Sy - e.pos.y);
+	
 			}
 		})
 	}
@@ -139,7 +166,7 @@ class Rope {
 
 //Setup ---------------
 function setup() {
-	resizeCanvas(Sx, Sy, 1);
+	resizeCanvas(Sx, Sy);
 	
 	let n = 60;
 	
@@ -151,10 +178,7 @@ function setup() {
 }
 
 //Draw ----------------
-function draw() {
-	if(mouseIsPressed)
-		setup();
-	
+function draw() {	
 	//rope.knots[0].pos.x = mouseX;
 	//rope.knots[0].pos.y = mouseY;
 
@@ -164,6 +188,9 @@ function draw() {
 	rect(0, 0, Sx, Sy);
 	
 	rope.draw();
+	rope.update();
 	for (var i = 0; i < 20; i++) rope.update();
+
+	rect(0,Sy-10,500*(Epg+Epe+Ec),Sy);
 
 }
