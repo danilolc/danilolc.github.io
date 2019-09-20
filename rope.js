@@ -3,28 +3,41 @@
 //############################
 
 //Globals -------------
-var Sx = 640
-var Sy = 480
+var Sx = 720;
+var Sy = 480;
 
-var gravity;
+var gravity = null;
 
-var rope;
+var rope = null;
 var rad = 2;
 
-var Grav = 0.000002;
-var Speed = 10;
-var Max = 0.005;
+var Grav = 0.0098;
+var Speed = 0.5;
 
 //Functions
-function drawV(v1, v2) {
-	line(v1.x, v1.y, v1.x + v2.x, v1.y + v2.y);
+function drawV(v1, v2, u = false, magn = 10 * Speed) {
+	
+	var a = v2.copy();
+	var b = a.mag();
+	
+	if (b == 0)
+		return;
+	if(u)
+		a.mult(Speed / b);
+	else
+		a.mult(magn);
+	
+	stroke(0,0,255);
+	line(v1.x, v1.y, v1.x + a.x, v1.y + a.y);
+	
 }
 
 //Classes -------------
 class Knot {
 	constructor(x, y) {
 		this.pos = createVector(x,y);
-		this.vel = createVector(0,0);
+		//this.vel = createVector(1-random(2), 1-random(2));
+		this.vel = createVector(0, 0);
 		this.acc = createVector(0,0);
 		this.fixed = false;
 		this.stretch = 0;
@@ -49,7 +62,7 @@ class Rope {
 		
 		this.knots.forEach(function(e,i,a){
 			if (lx != -1) {
-				stroke(e.stretch,-e.stretch,0);
+				stroke(e.stretch, -e.stretch,0);
 				line(lx, ly, e.pos.x, e.pos.y);
 			}
 			
@@ -62,19 +75,22 @@ class Rope {
 	}
 	
 	update() {
-		//background(210);
 		
-		var last = null;
-		var nthis = this;
+		var delta = this.delta;
 		
 		this.knots.forEach(function(e,i,a){
 			if (!e.fixed) {
 				
+				//Update positions and speeds
 				e.pos.x += e.vel.x * Speed;
 				e.pos.y += e.vel.y * Speed;
 				e.vel.x += e.acc.x * Speed;
 				e.vel.y += e.acc.y * Speed;
 				
+				//Reset gravity
+				e.acc.set(gravity);
+		
+				//Do borders
 				if (e.pos.y > Sy - rad && e.vel.y > 0) {
 					e.vel.y = -e.vel.y * 0.8;
 					e.pos.y = Sy - rad;
@@ -91,44 +107,42 @@ class Rope {
 					e.vel.x = -e.vel.x * 0.8;
 					e.pos.x = rad;
 				}
+
+				
 			}
+			
+			if(i > 0) {
+				//Get the last knot
+				let last = a[i-1];
+				
+				//Calculate the vector between knots
+				let d = e.pos.copy();
+				d.sub(last.pos);
+				
+				//Get the X
+				let dm = d.mag();
+				let x = dm - delta;
+				
+				//Make the vector length be X
+				d.mult(x / dm);
+				
+				//F = -Kx
+				let K = 0.01;
+				d.mult(-K);
+				
+				//Add the acc on both knots
+				e.acc.add(d);
+				last.acc.sub(d);
+				
+				//Define the stretch to colorize
+				e.stretch = x * 2;
+				
+			}
+			
 		})
 		
-		this.knots.forEach(function(e,i,a){
-			//if (!e.fixed) {
-				if (last == null) {
-					last = e;
-					return;
-				}
-				
-				e.acc.set(gravity);
-				
-				var d = e.pos.copy();
-				d.sub(last.pos)
-				
-				var dm = d.mag();
-				var t = dm - nthis.delta;
-				
-				e.stretch = 2*t;
-				
-				if (t > 0) {
-					let t2 = t * t;
-					let a = d.copy();
-					a.mult(t2*10);
-					
-					if(100 * dm * t2 > Max)
-						a.mult(Max / (100*dm*t2));
-					
-					last.acc.add(a);
-					e.acc.sub(a);
-					
-				}
-				
-				
-			//}
-			
-			last = e;
-		})
+		
+
 	}
 }
 
@@ -137,17 +151,23 @@ function setup() {
 	resizeCanvas(Sx, Sy, 1);
 	fill(224, 150, 0);
 	
-	let n = 10;
+	let n = 2;
 	
 	rope = new Rope(120, 60, n, 400);
 	rope.knots[0].fixed = true;
-	rope.knots[n-1].fixed = true;
+	//rope.knots[n-1].fixed = true;
+	
+	rope.delta = rope.delta;
 	
 	gravity = createVector(0, Grav);
 }
 
 //Draw ----------------
 function draw() {
-	rope.update();
+	
+	rope.knots[0].pos.x = mouseX;
+	rope.knots[0].pos.y = mouseY;
+	
 	rope.draw();
+	rope.update();
 }
