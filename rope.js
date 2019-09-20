@@ -7,7 +7,8 @@ var Sx = 720;
 var Sy = 480;
 
 var Rad = 1.5;
-var Grav = 0.00002;
+var Grav = 0.002;
+var Att = 0.008;
 
 var Epg = 0;
 var Epe = 0;
@@ -17,15 +18,6 @@ var gravity = null;
 var rope = null;
 
 //Functions
-function method(pos, vel, acc) {
-
-	pos.x += vel.x;
-	pos.y += vel.y;
-	vel.x += acc.x;
-	vel.y += acc.y;
-
-}
-
 function drawV(v1, v2, u = false, magn = 10) {
 	
 	var a = v2.copy();
@@ -96,19 +88,20 @@ class Rope {
 
 			if (!e.fixed) {
 				
-				//Update positions and velocities
-				//e.pos.x += e.vel.x;
-				//e.pos.y += e.vel.y;
-				//e.vel.x += e.acc.x;
-				//e.vel.y += e.acc.y;
-				method(e.pos, e.vel, e.acc);
+				//Update positions and velocities				
+				e.vel.div(1 + Att);
+
+				e.pos.x += e.vel.x;
+				e.pos.y += e.vel.y;
+				e.vel.x += e.acc.x;
+				e.vel.y += e.acc.y;
 				
 				//Reset gravity
 				e.acc.set(gravity);
 		
 				//Do borders
 				if (e.pos.y > Sy - Rad && e.vel.y > 0) {
-					e.vel.y = -e.vel.y * 0.8;
+					e.vel.y = -e.vel.y;// * 0.8;
 					e.pos.y = Sy - Rad;
 				}
 				if (e.pos.y < 0 && e.vel.y < 0) {
@@ -139,12 +132,13 @@ class Rope {
 				//Get the X
 				let dm = d.mag();
 				let x = dm - delta;
+				if (x < 0) return;
 				
 				//Make the vector length be X
 				d.mult(x / dm);
 				
 				//F = -Kx
-				let K = 0.0002;
+				let K = 0.001;
 				d.mult(-K);
 				
 				//Add the acc on both knots
@@ -168,7 +162,7 @@ class Rope {
 function setup() {
 	resizeCanvas(Sx, Sy);
 	
-	let n = 60;
+	let n = 30;
 	
 	rope = new Rope(120, 60, n, Sx-240);
 	rope.knots[0].fixed = true;
@@ -179,8 +173,8 @@ function setup() {
 
 //Draw ----------------
 function draw() {	
-	//rope.knots[0].pos.x = mouseX;
-	//rope.knots[0].pos.y = mouseY;
+	rope.knots[0].pos.x = mouseX;
+	rope.knots[0].pos.y = mouseY;
 
 	background(220);
 	noFill();
@@ -189,8 +183,8 @@ function draw() {
 	
 	rope.draw();
 	rope.update();
-	for (var i = 0; i < 20; i++) rope.update();
+	for (var i = 0; i < 50; i++) rope.update();
 
-	rect(0,Sy-10,500*(Epg+Epe+Ec),Sy);
+	//rect(0,Sy-10,500*(Epg+Epe+Ec),Sy);
 
 }
