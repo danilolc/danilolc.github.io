@@ -36,14 +36,15 @@ function drawV(v1, v2, u = false, magn = 10) {
 
 //Classes -------------
 class Knot {
-	constructor(v) {
-		this.pos = v.copy();
+	constructor(pos, mass) {
+		this.pos = pos.copy();
 		
 		this.vel = createVector(0, 0);
 		this.acc = createVector(0, 0);
 	
 		this.pos2 = createVector(0, 0);
 	
+		this.mass = mass;
 		this.fixed = false;
 		this.stretch = 0;
 	}
@@ -69,7 +70,7 @@ class Knot {
 }
 
 class Rope {
-	constructor(sx, sy, ex, ey, knots) {
+	constructor(sx, sy, ex, ey, knots, mass) {
 		var start = createVector(sx, sy);		
 		var end = createVector(ex, ey);
 
@@ -80,7 +81,7 @@ class Rope {
 
 		this.knots = [];
 		for (let i = 0; i < knots; i++) {
-			this.knots.push(new Knot(start));
+			this.knots.push(new Knot(start, mass / knots));
 			start.add(d);
 		}
 
@@ -104,6 +105,26 @@ class Rope {
 		})
 	}
 
+	get_force(p1, p2, v1, v2) {
+		//Calculate the vector between knots
+		let d = p1.copy();
+		d.sub(p2);
+		
+		//Get the X
+		let dm = d.mag();
+		let x = dm - this.delta;
+		
+		//Make the vector length be X
+		d.mult(x / dm);
+		
+		//F = -Kx
+		d.mult(-this.K);
+		
+		//Add the force on both vectors
+		v1.add(d);
+		v2.sub(d);
+	}
+
 	//Midpoint method
 	midpoint(dt) {
 		var athis = this;
@@ -116,32 +137,17 @@ class Rope {
 			e.acc.set(gravity);
 			
 			if(i > 0) {
-				//Get the last knot
+				//Get the last knot and find the force
 				let last = a[i-1];
-				
-				//Calculate the vector between knots
-				let d = e.pos2.copy();
-				d.sub(last.pos2);
-				
-				//Get the X
-				let dm = d.mag();
-				let x = dm - athis.delta;
-				
-				//Make the vector length be X
-				d.mult(x / dm);
-				
-				//F = -Kx
-				d.mult(-athis.K);
-				
-				//Add the acc on both knots
-				e.acc.add(d);
-				last.acc.sub(d);
+				athis.get_force(e.pos2, last.pos2, e.acc, last.acc);
 			}
 		})
 
 		
 		this.knots.forEach(function(e,i,a) {
 			if(!e.fixed) {
+				//Update positions and velocities
+				e.vel.div(1 + Att);
 				e.vel.x = e.vel.x + e.acc.x * dt / 2;
 				e.vel.y = e.vel.y + e.acc.y * dt / 2;
 
@@ -163,30 +169,9 @@ class Rope {
 			e.acc.set(gravity);
 
 			if(i > 0) {
-				//Get the last knot
+				//Get the last knot and find the force
 				let last = a[i-1];
-				
-				//Calculate the vector between knots
-				let d = e.pos.copy();
-				d.sub(last.pos);
-				
-				//Get the X
-				let dm = d.mag();
-				let x = dm - athis.delta;
-				
-				//Make the vector length be X
-				d.mult(x / dm);
-				
-				//F = -Kx
-				d.mult(-athis.K);
-				
-				//Add the acc on both knots
-				e.acc.add(d);
-				last.acc.sub(d);
-				
-				//Define the stretch to colorize
-				e.stretch = x * 2;
-	
+				athis.get_force(e.pos, last.pos, e.acc, last.acc);
 			}
 		})
 
@@ -210,11 +195,12 @@ class Rope {
 function setup() {
 	resizeCanvas(Sx, Sy);
 	
-	let n = 50;
+	let n = 9;
 	
-	rope = new Rope(100, 60, Sx-100, 60, n);
+	rope = new Rope(200, 60, Sx-200, 60, n, 10);
 	rope.knots[0].fixed = true;
 	rope.knots[n-1].fixed = true;
+	//rope.knots[n-1].mass = 90;
 
 	gravity = createVector(0, Grav);
 }
