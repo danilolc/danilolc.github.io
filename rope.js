@@ -6,6 +6,8 @@
 var Sx = 720;
 var Sy = 480;
 
+var s1 = {rad: 100, px: Sx/2, py: Sy/2};
+
 var Rad = 1.5;
 var Grav = 0.002;
 var Att = 0.008;
@@ -37,22 +39,29 @@ function drawV(v1, v2, u = false, magn = 10) {
 
 //Classes -------------
 class Knot {
-	constructor(x, y) {
-		this.pos = createVector(x, y);
+	constructor(v) {
+		this.pos = v.copy();
 		this.vel = createVector(0, 0);
 		this.acc = createVector(0, 0);
+		
 		this.fixed = false;
 		this.stretch = 0;
 	}
 }
 
 class Rope {
-	constructor(x, y, knots, size = 20, angle = 180) {
+	constructor(sx, sy, ex, ey, knots) {
+		var s = createVector(sx, sy);		
+		var e = createVector(ex, ey);
+
+		var d = e.copy().sub(s).div(knots - 1);
+		this.delta = d.mag();
+
 		this.knots = [];
-		this.delta = size / (knots - 1);
-		
-		for (let i = 0; i < knots; i++)
-			this.knots.push(new Knot(x + this.delta*i, y));
+		for (let i = 0; i < knots; i++) {
+			this.knots.push(new Knot(s));
+			s.add(d);
+		}
 
 	}
 	
@@ -70,11 +79,17 @@ class Rope {
 			ly = e.pos.y;
 			
 			noStroke();
-			ellipse(e.pos.x, e.pos.y, 2*Rad, 2*Rad);
+			//ellipse(e.pos.x, e.pos.y, 2*Rad, 2*Rad);
 		})
 	}
 	
-	update() {
+
+	midpoint(dt) {
+
+
+	}
+
+	euler(dt) {
 		var delta = this.delta;
 		
 		//Ec = mv2/2
@@ -88,20 +103,20 @@ class Rope {
 
 			if (!e.fixed) {
 				
-				//Update positions and velocities				
+				//Update positions and velocities
 				e.vel.div(1 + Att);
-
-				e.pos.x += e.vel.x;
-				e.pos.y += e.vel.y;
-				e.vel.x += e.acc.x;
-				e.vel.y += e.acc.y;
+				e.vel.x += e.acc.x * dt;
+				e.vel.y += e.acc.y * dt;
+				
+				e.pos.x += e.vel.x * dt;
+				e.pos.y += e.vel.y * dt;
 				
 				//Reset gravity
 				e.acc.set(gravity);
 		
 				//Do borders
 				if (e.pos.y > Sy - Rad && e.vel.y > 0) {
-					e.vel.y = -e.vel.y;// * 0.8;
+					e.vel.y = -e.vel.y * 0.8;
 					e.pos.y = Sy - Rad;
 				}
 				if (e.pos.y < 0 && e.vel.y < 0) {
@@ -132,7 +147,6 @@ class Rope {
 				//Get the X
 				let dm = d.mag();
 				let x = dm - delta;
-				if (x < 0) return;
 				
 				//Make the vector length be X
 				d.mult(x / dm);
@@ -164,17 +178,17 @@ function setup() {
 	
 	let n = 30;
 	
-	rope = new Rope(120, 60, n, Sx-240);
+	rope = new Rope(120, 60, Sx-120, 60, n);
 	rope.knots[0].fixed = true;
 	rope.knots[n-1].fixed = true;
-	
+
 	gravity = createVector(0, Grav);
 }
 
 //Draw ----------------
 function draw() {	
-	rope.knots[0].pos.x = mouseX;
-	rope.knots[0].pos.y = mouseY;
+	//rope.knots[0].pos.x = mouseX;
+	//rope.knots[0].pos.y = mouseY;
 
 	background(220);
 	noFill();
@@ -182,9 +196,11 @@ function draw() {
 	rect(0, 0, Sx, Sy);
 	
 	rope.draw();
-	rope.update();
-	for (var i = 0; i < 50; i++) rope.update();
+	for (var i = 0; i < 10; i++) rope.euler(1);
 
-	//rect(0,Sy-10,500*(Epg+Epe+Ec),Sy);
+	stroke(0);
+	fill(230,206,100);
+	ellipse(s1.px, s1.py, s1.rad, s1.rad);
+	rect(0,Sy-10,20*(Epg+Epe+Ec),Sy);
 
 }
