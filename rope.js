@@ -9,12 +9,9 @@ var Sy = 480;
 var s1 = {rad: 100, px: Sx/2, py: Sy/2};
 
 var Rad = 1.5;
-var Grav = 0.002;
-var Att = 0.008;
-
-var Epg = 0;
-var Epe = 0;
-var Ec = 0;
+var Grav = 98;
+var Elastic = 2000;
+var Att = 0.001;
 
 var gravity = null;
 var rope = null;
@@ -41,26 +38,50 @@ function drawV(v1, v2, u = false, magn = 10) {
 class Knot {
 	constructor(v) {
 		this.pos = v.copy();
+		
 		this.vel = createVector(0, 0);
 		this.acc = createVector(0, 0);
-		
+	
+		this.pos2 = createVector(0, 0);
+	
 		this.fixed = false;
 		this.stretch = 0;
 	}
+
+	do_borders() {
+		if (this.pos.y > Sy - Rad && this.vel.y > 0) {
+			this.vel.y = -this.vel.y * 0.8;
+			this.pos.y = Sy - Rad;
+		}
+		if (this.pos.y < 0 && this.vel.y < 0) {
+			this.vel.y = -this.vel.y * 0.8;
+			this.pos.y = Rad;
+		}
+		if (this.pos.x > Sx - Rad && this.vel.x > 0) {
+			this.vel.x = -this.vel.x * 0.8;
+			this.pos.x = Sx - Rad;
+		}
+		if (this.pos.x < 0 && this.vel.x < 0) {
+			this.vel.x = -this.vel.x * 0.8;
+			this.pos.x = Rad;
+		}
+	} 
 }
 
 class Rope {
 	constructor(sx, sy, ex, ey, knots) {
-		var s = createVector(sx, sy);		
-		var e = createVector(ex, ey);
+		var start = createVector(sx, sy);		
+		var end = createVector(ex, ey);
 
-		var d = e.copy().sub(s).div(knots - 1);
+		var d = end.copy().sub(start).div(knots - 1);
 		this.delta = d.mag();
+
+		this.K = Elastic;
 
 		this.knots = [];
 		for (let i = 0; i < knots; i++) {
-			this.knots.push(new Knot(s));
-			s.add(d);
+			this.knots.push(new Knot(start));
+			start.add(d);
 		}
 
 	}
@@ -79,63 +100,68 @@ class Rope {
 			ly = e.pos.y;
 			
 			noStroke();
-			//ellipse(e.pos.x, e.pos.y, 2*Rad, 2*Rad);
+			ellipse(e.pos.x, e.pos.y, 2*Rad, 2*Rad);
 		})
 	}
-	
 
+	//Midpoint method
 	midpoint(dt) {
+		var athis = this;
 
+		this.knots.forEach(function(e,i,a) {
+			//Estimate a next position to calculate x''
+			e.pos2.x = e.pos.x + e.vel.x * dt / 2;
+			e.pos2.y = e.pos.y + e.vel.y * dt / 2;
 
+			e.acc.set(gravity);
+			
+			if(i > 0) {
+				//Get the last knot
+				let last = a[i-1];
+				
+				//Calculate the vector between knots
+				let d = e.pos2.copy();
+				d.sub(last.pos2);
+				
+				//Get the X
+				let dm = d.mag();
+				let x = dm - athis.delta;
+				
+				//Make the vector length be X
+				d.mult(x / dm);
+				
+				//F = -Kx
+				d.mult(-athis.K);
+				
+				//Add the acc on both knots
+				e.acc.add(d);
+				last.acc.sub(d);
+			}
+		})
+
+		
+		this.knots.forEach(function(e,i,a) {
+			if(!e.fixed) {
+				e.vel.x = e.vel.x + e.acc.x * dt / 2;
+				e.vel.y = e.vel.y + e.acc.y * dt / 2;
+
+				e.pos.x = e.pos.x + e.vel.x * dt;
+				e.pos.y = e.pos.y + e.vel.y * dt;
+
+				e.do_borders();
+			}
+		})
 	}
 
+	//Euler method
 	euler(dt) {
-		var delta = this.delta;
-		
-		//Ec = mv2/2
-		//Epg = mgh
-		//Epe = kx2/2
-		Ec = 0;
-		Epg = 0;
-		Epe = 0;
+		var athis = this;
 	
-		this.knots.forEach(function(e,i,a){
+		//Calculate x'' on each knot
+		this.knots.forEach(function(e,i,a) {
 
-			if (!e.fixed) {
-				
-				//Update positions and velocities
-				e.vel.div(1 + Att);
-				e.vel.x += e.acc.x * dt;
-				e.vel.y += e.acc.y * dt;
-				
-				e.pos.x += e.vel.x * dt;
-				e.pos.y += e.vel.y * dt;
-				
-				//Reset gravity
-				e.acc.set(gravity);
-		
-				//Do borders
-				if (e.pos.y > Sy - Rad && e.vel.y > 0) {
-					e.vel.y = -e.vel.y * 0.8;
-					e.pos.y = Sy - Rad;
-				}
-				if (e.pos.y < 0 && e.vel.y < 0) {
-					e.vel.y = -e.vel.y * 0.8;
-					e.pos.y = Rad;
-				}
-				if (e.pos.x > Sx - Rad && e.vel.x > 0) {
-					e.vel.x = -e.vel.x * 0.8;
-					e.pos.x = Sx - Rad;
-				}
-				if (e.pos.x < 0 && e.vel.x < 0) {
-					e.vel.x = -e.vel.x * 0.8;
-					e.pos.x = Rad;
-				}
+			e.acc.set(gravity);
 
-				
-			}
-			
-			//Calculate forces based on current position
 			if(i > 0) {
 				//Get the last knot
 				let last = a[i-1];
@@ -146,14 +172,13 @@ class Rope {
 				
 				//Get the X
 				let dm = d.mag();
-				let x = dm - delta;
+				let x = dm - athis.delta;
 				
 				//Make the vector length be X
 				d.mult(x / dm);
 				
 				//F = -Kx
-				let K = 0.001;
-				d.mult(-K);
+				d.mult(-athis.K);
 				
 				//Add the acc on both knots
 				e.acc.add(d);
@@ -161,12 +186,21 @@ class Rope {
 				
 				//Define the stretch to colorize
 				e.stretch = x * 2;
-			
-				//Calculate energy
-				Epe += K*x*x/2;
-				Ec += e.vel.magSq() / 2;
-				Epg += Grav * (Sy - e.pos.y);
 	
+			}
+		})
+
+		this.knots.forEach(function(e,i,a) {
+			if (!e.fixed) {
+				//Update positions and velocities
+				e.vel.div(1 + Att);
+				e.vel.x += e.acc.x * dt;
+				e.vel.y += e.acc.y * dt;
+				
+				e.pos.x += e.vel.x * dt;
+				e.pos.y += e.vel.y * dt;
+				
+				e.do_borders();
 			}
 		})
 	}
@@ -176,9 +210,9 @@ class Rope {
 function setup() {
 	resizeCanvas(Sx, Sy);
 	
-	let n = 30;
+	let n = 50;
 	
-	rope = new Rope(120, 60, Sx-120, 60, n);
+	rope = new Rope(100, 60, Sx-100, 60, n);
 	rope.knots[0].fixed = true;
 	rope.knots[n-1].fixed = true;
 
@@ -186,21 +220,22 @@ function setup() {
 }
 
 //Draw ----------------
-function draw() {	
-	//rope.knots[0].pos.x = mouseX;
-	//rope.knots[0].pos.y = mouseY;
+var lasttime = 0;
 
-	background(220);
-	noFill();
+function draw() {
+	
+	var dt = millis() / 1000 - lasttime;
+	lasttime += dt;
+
+	if(mouseIsPressed) {
+		rope.knots[0].pos.x = mouseX;
+		rope.knots[0].pos.y = mouseY;
+	}
+
+	fill(220, 250, 200);
 	stroke(0);
 	rect(0, 0, Sx, Sy);
 	
 	rope.draw();
-	for (var i = 0; i < 10; i++) rope.euler(1);
-
-	stroke(0);
-	fill(230,206,100);
-	ellipse(s1.px, s1.py, s1.rad, s1.rad);
-	rect(0,Sy-10,20*(Epg+Epe+Ec),Sy);
-
+	rope.midpoint(dt);
 }
