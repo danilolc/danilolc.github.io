@@ -11,7 +11,7 @@ var s1 = {rad: 100, px: Sx/2, py: Sy/2};
 var Rad = 1.5;
 var Grav = 98;
 var Elastic = 2000;
-var Att = 0.001;
+var Att = 0.000;
 
 var gravity = null;
 var rope = null;
@@ -34,6 +34,20 @@ function drawV(v1, v2, u = false, magn = 10) {
 	
 }
 
+function collide(knot, c, r, e) {
+    if(knot.fixed) return;
+	
+    var ds = knot.pos.copy().sub(c);
+    var dist = ds.mag();
+	
+    if(dist < r) {
+        let k = ds.dot(knot.vel) / (dist*dist);
+        let p = ds.copy().mult(2*k*e);
+        knot.vel.add(p);
+		ds.mult(r/dist);
+		knot.pos = ds.add(c);
+    }
+}
 //Classes -------------
 class Knot {
 	constructor(pos, mass) {
@@ -50,6 +64,9 @@ class Knot {
 	}
 
 	do_borders() {
+		var c = createVector(200, 200);
+		collide(this, c, 100, -0.5);
+		
 		if (this.pos.y > Sy - Rad && this.vel.y > 0) {
 			this.vel.y = -this.vel.y * 0.8;
 			this.pos.y = Sy - Rad;
@@ -195,11 +212,11 @@ class Rope {
 function setup() {
 	resizeCanvas(Sx, Sy);
 	
-	let n = 9;
+	let n = 300;
 	
 	rope = new Rope(200, 60, Sx-200, 60, n, 10);
 	rope.knots[0].fixed = true;
-	rope.knots[n-1].fixed = true;
+	//rope.knots[n-1].fixed = true;
 	//rope.knots[n-1].mass = 90;
 
 	gravity = createVector(0, Grav);
