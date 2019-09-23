@@ -6,8 +6,6 @@
 var Sx = 720;
 var Sy = 480;
 
-var s1 = {rad: 100, px: Sx/2, py: Sy/2};
-
 var Rad = 1.5;
 var Grav = 98;
 var Elastic = 2000;
@@ -30,8 +28,23 @@ function drawV(v1, v2, u = false, magn = 10) {
 		a.mult(magn);
 	
 	stroke(0,0,255);
-	line(v1.x, v1.y, v1.x + a.x, v1.y + a.y);
-	
+	line(v1.x, v1.y, v1.x + a.x, v1.y + a.y);	
+}
+
+function setColor(f) {
+	if(f <= 1/6)
+		stroke(0xE7,0x00,0x00);
+	else if (f <= 2/6)
+		stroke(0xFF,0x8C,0x00);
+	else if (f <= 3/6)
+		stroke(0xFF,0xEF,0x00);
+	else if (f <= 4/6)
+		stroke(0x00,0x81,0x1F);
+	else if (f <= 5/6)
+		stroke(0x00,0x44,0xFF);
+	else if (f <= 6/6)
+		stroke(0x76,0x00,0x89);
+	strokeWeight(10);
 }
 
 //Classes -------------
@@ -91,9 +104,11 @@ class Rope {
 		var lx = -1, ly = -1;
 		fill(255, 0, 0);
 		
+		var size = this.knots.length;
 		this.knots.forEach(function(e,i,a){
 			if (lx != -1) {
 				stroke(e.stretch, -e.stretch,0);
+				//setColor(i / size);
 				line(lx, ly, e.pos.x, e.pos.y);
 			}
 			
@@ -101,7 +116,7 @@ class Rope {
 			ly = e.pos.y;
 			
 			noStroke();
-			ellipse(e.pos.x, e.pos.y, 2*Rad, 2*Rad);
+			//ellipse(e.pos.x, e.pos.y, 2*Rad, 2*Rad);
 		})
 	}
 
@@ -195,7 +210,7 @@ class Rope {
 function setup() {
 	resizeCanvas(Sx, Sy);
 	
-	let n = 9;
+	let n = 80;
 	
 	rope = new Rope(200, 60, Sx-200, 60, n, 10);
 	rope.knots[0].fixed = true;
@@ -213,15 +228,17 @@ function draw() {
 	var dt = millis() / 1000 - lasttime;
 	lasttime += dt;
 
-	if(mouseIsPressed) {
+	if(mouseIsPressed && mouseX > 0 && mouseX < Sx && mouseY > 0 && mouseY < Sy) {
 		rope.knots[0].pos.x = mouseX;
 		rope.knots[0].pos.y = mouseY;
 	}
 
-	fill(220, 250, 200);
+	fill(245);
 	stroke(0);
+	strokeWeight(4);
 	rect(0, 0, Sx, Sy);
 	
+	dt = 0.016;
 	rope.draw();
 	rope.midpoint(dt);
 }
