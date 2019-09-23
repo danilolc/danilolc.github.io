@@ -7,9 +7,10 @@ var Sx = 720;
 var Sy = 480;
 
 var Rad = 1.5;
-var Grav = 98;
+var Grav = 9.8;
 var Elastic = 2000;
-var Att = 0.000;
+var Att = 0.001;
+var Points = 200;
 
 var gravity = null;
 var rope = null;
@@ -47,21 +48,19 @@ function setColor(f) {
 	strokeWeight(10);
 }
 
-function collide(knot, c, r, e) {
-    if(knot.fixed) return;
-	
-    var ds = knot.pos.copy().sub(c);
-    var dist = ds.mag();
-	
-    if(dist < r) {
-        let k = ds.dot(knot.vel) / (dist*dist);
-        let p = ds.copy().mult(2*k*e);
-        knot.vel.add(p);
-		ds.mult(r/dist);
-		knot.pos = ds.add(c);
-    }
-}
 //Classes -------------
+class Sphere {
+	constructor(pos, r, mass) {
+		this.pos = pos.copy();
+		
+		this.vel = createVector(0, 0);
+		this.acc = createVector(0, 0);
+
+		this.mass = mass;
+		this.fixed = true;
+	}
+}
+
 class Knot {
 	constructor(pos, mass) {
 		this.pos = pos.copy();
@@ -77,9 +76,6 @@ class Knot {
 	}
 
 	do_borders() {
-		var c = createVector(200, 200);
-		collide(this, c, 100, -0.5);
-		
 		if (this.pos.y > Sy - Rad && this.vel.y > 0) {
 			this.vel.y = -this.vel.y * 0.8;
 			this.pos.y = Sy - Rad;
@@ -97,6 +93,22 @@ class Knot {
 			this.pos.x = Rad;
 		}
 	} 
+
+	do_circle(center, r, e) {
+	    if(this.fixed) return;
+		
+	    var ds = this.pos.copy().sub(center);
+	    var dist = ds.mag();
+		
+	    if(dist < r) {
+		let k = ds.dot(this.vel) / (dist * dist);
+		let p = ds.copy().mult(2 * k * e);
+		this.vel.add(p);
+		ds.mult(r / dist);
+		this.pos = ds.add(center);
+	    }
+	}
+
 }
 
 class Rope {
@@ -125,6 +137,7 @@ class Rope {
 		this.knots.forEach(function(e,i,a){
 			if (lx != -1) {
 				stroke(e.stretch, -e.stretch,0);
+				strokeWeight(6);
 				//setColor(i / size);
 				line(lx, ly, e.pos.x, e.pos.y);
 			}
@@ -155,6 +168,8 @@ class Rope {
 		//Add the force on both vectors
 		v1.add(d);
 		v2.sub(d);
+
+		return 50*x;
 	}
 
 	//Midpoint method
@@ -171,7 +186,7 @@ class Rope {
 			if(i > 0) {
 				//Get the last knot and find the force
 				let last = a[i-1];
-				athis.get_force(e.pos2, last.pos2, e.acc, last.acc);
+				e.stretch = athis.get_force(e.pos2, last.pos2, e.acc, last.acc);
 			}
 		})
 
@@ -179,14 +194,22 @@ class Rope {
 		this.knots.forEach(function(e,i,a) {
 			if(!e.fixed) {
 				//Update positions and velocities
-				e.vel.div(1 + Att);
 				e.vel.x = e.vel.x + e.acc.x * dt / 2;
 				e.vel.y = e.vel.y + e.acc.y * dt / 2;
 
 				e.pos.x = e.pos.x + e.vel.x * dt;
 				e.pos.y = e.pos.y + e.vel.y * dt;
 
+				e.vel.div(1 + Att);
+				
+
 				e.do_borders();
+				
+				if(mouseIsPressed) {
+					let c = createVector(mouseX, mouseY);
+					e.do_circle(c, 20, -0.5);
+				}
+		
 			}
 		})
 	}
@@ -227,12 +250,11 @@ class Rope {
 function setup() {
 	resizeCanvas(Sx, Sy);
 	
-	let n = 80;
-	
-	rope = new Rope(200, 60, Sx-200, 60, n, 10);
+	rope = new Rope(250, 60, Sx-250, 60, Points, 10);
 	rope.knots[0].fixed = true;
-	//rope.knots[n-1].fixed = true;
-	//rope.knots[n-1].mass = 90;
+	rope.knots[Points/2].fixed = true;
+	//rope.knots[Points-1].fixed = true;
+	//rope.knots[Points-1].mass = 90;
 
 	gravity = createVector(0, Grav);
 }
@@ -244,18 +266,21 @@ function draw() {
 	
 	var dt = millis() / 1000 - lasttime;
 	lasttime += dt;
-
-	if(mouseIsPressed && mouseX > 0 && mouseX < Sx && mouseY > 0 && mouseY < Sy) {
-		rope.knots[0].pos.x = mouseX;
-		rope.knots[0].pos.y = mouseY;
-	}
+	
 
 	fill(245);
 	stroke(0);
-	strokeWeight(4);
+	strokeWeight(1);
 	rect(0, 0, Sx, Sy);
 	
 	dt = 0.016;
 	rope.draw();
-	rope.midpoint(dt);
+	if(mouseIsPressed && mouseX > 0 && mouseX < Sx && mouseY > 0 && mouseY < Sy) {
+		//rope.knots[0].pos.x = mouseX;
+		//rope.knots[0].pos.y = mouseY;
+		stroke(0);
+		strokeWeight(1.5);
+		ellipse(mouseX, mouseY, 40, 40);
+	}
+	for(let i = 0; i < 10; i++) rope.midpoint(dt);
 }
