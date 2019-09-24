@@ -12,6 +12,7 @@ var Elastic = 2000;
 var Att = 0.001;
 var Points = 200;
 
+var balls = [];
 var gravity = null;
 var rope = null;
 
@@ -47,6 +48,8 @@ function setColor(f) {
 		stroke(0x76,0x00,0x89);
 	strokeWeight(10);
 }
+
+
 
 //Classes -------------
 class Sphere {
@@ -101,11 +104,11 @@ class Knot {
 	    var dist = ds.mag();
 		
 	    if(dist < r) {
-		let k = ds.dot(this.vel) / (dist * dist);
-		let p = ds.copy().mult(2 * k * e);
-		this.vel.add(p);
-		ds.mult(r / dist);
-		this.pos = ds.add(center);
+			let k = ds.dot(this.vel) / (dist * dist);
+			let p = ds.copy().mult(2 * k * e);
+			this.vel.add(p);
+			ds.mult(r / dist);
+			this.pos = ds.add(center);
 	    }
 	}
 
@@ -205,9 +208,9 @@ class Rope {
 
 				e.do_borders();
 				
-				if(mouseIsPressed) {
-					let c = createVector(mouseX, mouseY);
-					e.do_circle(c, 20, -0.5);
+				for(let i = 0; i < balls.length; i++)
+				{
+					e.do_circle(balls[i].c, balls[i].r/2, -0.8);
 				}
 		
 			}
@@ -246,6 +249,15 @@ class Rope {
 	}
 }
 
+class Ball
+{
+	constructor(c, r)
+	{
+		this.c = c;
+		this.r = r;
+	}
+}
+
 //Setup ---------------
 function setup() {
 	resizeCanvas(Sx, Sy);
@@ -275,12 +287,17 @@ function draw() {
 	
 	dt = 0.016;
 	rope.draw();
-	if(mouseIsPressed && mouseX > 0 && mouseX < Sx && mouseY > 0 && mouseY < Sy) {
-		//rope.knots[0].pos.x = mouseX;
-		//rope.knots[0].pos.y = mouseY;
-		stroke(0);
-		strokeWeight(1.5);
-		ellipse(mouseX, mouseY, 40, 40);
+	stroke(0);
+	strokeWeight(1.5);
+	for(let i = 0; i < balls.length; i++)
+	{		
+		ellipse(balls[i].c.x, balls[i].c.y, balls[i].r, balls[i].r);
 	}
 	for(let i = 0; i < 10; i++) rope.midpoint(dt);
+}
+
+function mouseClicked()
+{
+	var c = createVector(mouseX, mouseY);
+	balls.push(new Ball(c, 10));
 }
