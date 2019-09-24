@@ -9,7 +9,7 @@ var Sy = 480;
 var Rad = 1.5;
 var Grav = 9.8;
 var Elastic = 2000;
-var Att = 0.001;
+var Att = 10;
 var Points = 200;
 
 var balls = [];
@@ -140,7 +140,7 @@ class Rope {
 		this.knots.forEach(function(e,i,a){
 			if (lx != -1) {
 				stroke(e.stretch, -e.stretch,0);
-				strokeWeight(6);
+				strokeWeight(8);
 				//setColor(i / size);
 				line(lx, ly, e.pos.x, e.pos.y);
 			}
@@ -203,9 +203,8 @@ class Rope {
 				e.pos.x = e.pos.x + e.vel.x * dt;
 				e.pos.y = e.pos.y + e.vel.y * dt;
 
-				e.vel.div(1 + Att);
+				e.vel.div(1 + Att / 10000);
 				
-
 				e.do_borders();
 				
 				for(let i = 0; i < balls.length; i++)
@@ -236,12 +235,13 @@ class Rope {
 		this.knots.forEach(function(e,i,a) {
 			if (!e.fixed) {
 				//Update positions and velocities
-				e.vel.div(1 + Att);
 				e.vel.x += e.acc.x * dt;
 				e.vel.y += e.acc.y * dt;
 				
 				e.pos.x += e.vel.x * dt;
 				e.pos.y += e.vel.y * dt;
+				
+				e.vel.div(1 + Att / 10000);
 				
 				e.do_borders();
 			}
@@ -267,8 +267,6 @@ function setup() {
 	rope.knots[Points/2].fixed = true;
 	//rope.knots[Points-1].fixed = true;
 	//rope.knots[Points-1].mass = 90;
-
-	gravity = createVector(0, Grav);
 }
 
 //Draw ----------------
@@ -279,6 +277,7 @@ function draw() {
 	var dt = millis() / 1000 - lasttime;
 	lasttime += dt;
 	
+	gravity = createVector(0, Grav);
 
 	fill(245);
 	stroke(0);
