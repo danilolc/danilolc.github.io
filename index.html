@@ -26,6 +26,18 @@
 <center>
 <h1>The Rope</h1>
 <button onclick="setup()">reset</button>
+<br>
+Gravity:
+<input type="number" name="quantity" value=9.8 step=0.1 onchange="Grav = float(this.value)">
+<br>
+Elastic:
+<input type="number" name="quantity" value=2000 step=1 onchange="rope.K = float(this.value)">
+<br>
+Points:
+<input type="number" name="quantity" value=200 step=1 onchange="Points = float(this.value); setup()">
+<br>
+Att:
+<input type="number" name="quantity" value=100 step=1 onchange="Att = float(this.value)">
 </center>
 
 
