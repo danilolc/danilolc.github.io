@@ -247,16 +247,24 @@ class Rope {
 }
 
 //Setup ---------------
+var Bg = null;
+var Head = null;
+var Body = null;
+
 function setup() {
 	resizeCanvas(Sx, Sy);
 	
 	rope = new Rope(250, 60, Sx-250, 60, Points, 10);
-	rope.knots[0].fixed = true;
+	//rope.knots[0].fixed = true;
 	rope.knots[Points/2].fixed = true;
 	//rope.knots[Points-1].fixed = true;
 	//rope.knots[Points-1].mass = 90;
 
 	gravity = createVector(0, Grav);
+
+	Bg = loadImage("background.jpg");
+	Head = loadImage("head.png");
+	Body = loadImage("body.png");
 }
 
 //Draw ----------------
@@ -268,19 +276,30 @@ function draw() {
 	lasttime += dt;
 	
 
-	fill(245);
+	//fill(245);
+
+	imageMode(CORNER);	
+	image(Bg, 0, 0);
+	image(Bg, Bg.width, 0);
+
+	imageMode(CENTER);
+	image(Head, rope.knots[0].pos.x, rope.knots[0].pos.y);
+	
+	noFill();
 	stroke(0);
-	strokeWeight(1);
+	strokeWeight(2);
 	rect(0, 0, Sx, Sy);
 	
 	dt = 0.016;
 	rope.draw();
+	rope.knots[0].fixed = false;
 	if(mouseIsPressed && mouseX > 0 && mouseX < Sx && mouseY > 0 && mouseY < Sy) {
-		//rope.knots[0].pos.x = mouseX;
-		//rope.knots[0].pos.y = mouseY;
-		stroke(0);
-		strokeWeight(1.5);
-		ellipse(mouseX, mouseY, 40, 40);
+		rope.knots[0].pos.x = mouseX;
+		rope.knots[0].pos.y = mouseY;
+		rope.knots[0].fixed = true;
+		//stroke(0);
+		//strokeWeight(1.5);
+		//ellipse(mouseX, mouseY, 40, 40);
 	}
 	for(let i = 0; i < 10; i++) rope.midpoint(dt);
 }
