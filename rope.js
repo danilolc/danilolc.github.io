@@ -9,9 +9,10 @@ var Sy = 480;
 var Rad = 1.5;
 var Grav = 9.8;
 var Elastic = 2000;
-var Att = 0.001;
+var Att = 10;
 var Points = 200;
 
+var balls = [];
 var gravity = null;
 var rope = null;
 
@@ -47,6 +48,8 @@ function setColor(f) {
 		stroke(0x76,0x00,0x89);
 	strokeWeight(10);
 }
+
+
 
 //Classes -------------
 class Sphere {
@@ -101,11 +104,11 @@ class Knot {
 	    var dist = ds.mag();
 		
 	    if(dist < r) {
-		let k = ds.dot(this.vel) / (dist * dist);
-		let p = ds.copy().mult(2 * k * e);
-		this.vel.add(p);
-		ds.mult(r / dist);
-		this.pos = ds.add(center);
+			let k = ds.dot(this.vel) / (dist * dist);
+			let p = ds.copy().mult(2 * k * e);
+			this.vel.add(p);
+			ds.mult(r / dist);
+			this.pos = ds.add(center);
 	    }
 	}
 
@@ -136,8 +139,8 @@ class Rope {
 		var size = this.knots.length;
 		this.knots.forEach(function(e,i,a){
 			if (lx != -1) {
-				stroke(e.stretch, -e.stretch,0);
-				strokeWeight(6);
+				stroke(e.stretch, 230, -e.stretch);
+				strokeWeight(8);
 				//setColor(i / size);
 				line(lx, ly, e.pos.x, e.pos.y);
 			}
@@ -200,14 +203,13 @@ class Rope {
 				e.pos.x = e.pos.x + e.vel.x * dt;
 				e.pos.y = e.pos.y + e.vel.y * dt;
 
-				e.vel.div(1 + Att);
+				e.vel.div(1 + Att / 10000);
 				
-
 				e.do_borders();
 				
-				if(mouseIsPressed) {
-					let c = createVector(mouseX, mouseY);
-					e.do_circle(c, 20, -0.5);
+				for(let i = 0; i < balls.length; i++)
+				{
+					e.do_circle(balls[i].c, balls[i].r/2, -0.8);
 				}
 		
 			}
@@ -233,16 +235,26 @@ class Rope {
 		this.knots.forEach(function(e,i,a) {
 			if (!e.fixed) {
 				//Update positions and velocities
-				e.vel.div(1 + Att);
 				e.vel.x += e.acc.x * dt;
 				e.vel.y += e.acc.y * dt;
 				
 				e.pos.x += e.vel.x * dt;
 				e.pos.y += e.vel.y * dt;
 				
+				e.vel.div(1 + Att / 10000);
+				
 				e.do_borders();
 			}
 		})
+	}
+}
+
+class Ball
+{
+	constructor(c, r)
+	{
+		this.c = c;
+		this.r = r;
 	}
 }
 
@@ -275,6 +287,7 @@ function draw() {
 	var dt = millis() / 1000 - lasttime;
 	lasttime += dt;
 	
+	gravity = createVector(0, Grav);
 
 	//fill(245);
 
@@ -282,8 +295,8 @@ function draw() {
 	image(Bg, 0, 0);
 	image(Bg, Bg.width, 0);
 
-	imageMode(CENTER);
-	image(Head, rope.knots[0].pos.x, rope.knots[0].pos.y);
+	//imageMode(CENTER);
+	//image(Head, rope.knots[0].pos.x, rope.knots[0].pos.y);
 	
 	noFill();
 	stroke(0);
@@ -292,14 +305,15 @@ function draw() {
 	
 	dt = 0.016;
 	rope.draw();
-	rope.knots[0].fixed = false;
-	if(mouseIsPressed && mouseX > 0 && mouseX < Sx && mouseY > 0 && mouseY < Sy) {
-		rope.knots[0].pos.x = mouseX;
-		rope.knots[0].pos.y = mouseY;
-		rope.knots[0].fixed = true;
-		//stroke(0);
-		//strokeWeight(1.5);
-		//ellipse(mouseX, mouseY, 40, 40);
+	stroke(0);
+	strokeWeight(1.5);
+	for(let i = 0; i < balls.length; i++) {	
+		ellipse(balls[i].c.x, balls[i].c.y, balls[i].r, balls[i].r);
 	}
 	for(let i = 0; i < 10; i++) rope.midpoint(dt);
+}
+
+function mouseClicked() {
+	var c = createVector(mouseX, mouseY);
+	balls.push(new Ball(c, 10));
 }
