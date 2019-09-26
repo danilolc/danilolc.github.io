@@ -152,6 +152,32 @@ class Rope {
 			//ellipse(e.pos.x, e.pos.y, 2*Rad, 2*Rad);
 		})
 	}
+	
+	draw_slither() {
+		imageMode(CENTER);
+		
+		var lx = -1, ly = -1;
+		var size = this.knots.length;
+		
+		for( let i = 0; i < size; i += 4) {
+			let e = this.knots[i];
+			
+			let x = e.pos.x;
+			let y = e.pos.y;
+			
+			push();
+			translate(x, y);
+			rotate(atan2(y - ly, x - lx));
+			image(Body, 0, 0, 30, 30);
+			pop();
+			
+			lx = x;
+			ly = y;
+			
+		}
+	
+		
+	}
 
 	get_force(p1, p2, v1, v2) {
 		//Calculate the vector between knots
@@ -266,8 +292,8 @@ var Body = null;
 function setup() {
 	resizeCanvas(Sx, Sy);
 	
-	rope = new Rope(250, 60, Sx-250, 60, Points, 10);
-	//rope.knots[0].fixed = true;
+	rope = new Rope(200, 60, Sx-200, 60, Points, 10);
+	rope.knots[0].fixed = true;
 	rope.knots[Points/2].fixed = true;
 	//rope.knots[Points-1].fixed = true;
 	//rope.knots[Points-1].mass = 90;
@@ -289,8 +315,11 @@ function draw() {
 	
 	gravity = createVector(0, Grav);
 
-	//fill(245);
-
+	fill(245);
+	stroke(0);
+	strokeWeight(2);
+	rect(0, 0, Sx, Sy);
+	
 	imageMode(CORNER);	
 	image(Bg, 0, 0);
 	image(Bg, Bg.width, 0);
@@ -298,13 +327,9 @@ function draw() {
 	//imageMode(CENTER);
 	//image(Head, rope.knots[0].pos.x, rope.knots[0].pos.y);
 	
-	noFill();
-	stroke(0);
-	strokeWeight(2);
-	rect(0, 0, Sx, Sy);
 	
 	dt = 0.016;
-	rope.draw();
+	rope.draw_slither();
 	stroke(0);
 	strokeWeight(1.5);
 	for(let i = 0; i < balls.length; i++) {	
@@ -314,6 +339,8 @@ function draw() {
 }
 
 function mouseClicked() {
-	var c = createVector(mouseX, mouseY);
-	balls.push(new Ball(c, 10));
+	if (mouseX < Sx && mouseX > 0 && mouseY < Sy && mouseY > 0) {
+		var c = createVector(mouseX, mouseY);
+		balls.push(new Ball(c, 20));
+	}
 }
