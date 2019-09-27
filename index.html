@@ -16,7 +16,16 @@
         height: 100%;
         display: table-cell;
         vertical-align: middle;
+		line-height: 1.5;
     }
+	input, select {
+		float: right;
+	}
+	div {
+		margin: auto;
+		width: 50%;
+		
+	}
 </style>
 
 </head>
@@ -25,20 +34,38 @@
 
 <center>
 <h1>The Rope</h1>
-<button onclick="setup()">reset</button>
-<br>
-Gravity:
+</center>
+
+<div>
+Gravidade:
 <input type="number" name="quantity" value=9.8 step=0.1 onchange="Grav = float(this.value)">
 <br>
-Elastic:
+Elasticidade:
 <input type="number" name="quantity" value=2000 step=1 onchange="rope.K = float(this.value)">
 <br>
-Points:
-<input type="number" name="quantity" value=200 step=1 onchange="Points = float(this.value); setup()">
+Pontos:
+<input type="number" name="quantity" value=100 step=1 onchange="Points = float(this.value); setup()">
 <br>
-Att:
-<input type="number" name="quantity" value=100 step=1 onchange="Att = float(this.value)">
-</center>
+Tamanho:
+<input type="number" name="quantity" value=200 step=1 onchange="Tam = float(this.value); setup()">
+<br>
+Atrito:
+<input type="number" name="quantity" value=10 step=1 onchange="Att = float(this.value)">
+<br>
+Repetições por desenho:
+<input type="number" name="quantity" value=10 step=1 onchange="Itt = int(this.value)">
+<br>
+Modo de desenho:
+<select onchange="Mode = this.value">
+  <option value="Normal">Normal</option>
+  <option value="Pontos">Pontos</option>
+  <option value="Slither">Slither</option>
+</select>
+<br>
+<button onclick="setup()">reset</button>
+<br>
+</div>
+
 
 
 </body>
