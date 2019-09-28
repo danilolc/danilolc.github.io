@@ -6,14 +6,15 @@
 var Sx = 720;
 var Sy = 480;
 
-var Tam = 200;
-var Mode = "Normal";
-var Itt = 30;
-var Rad = 1.5;
 var Grav = 9.8;
 var Elastic = 2000;
-var Att = 10;
 var Points = 100;
+var Tam = 200;
+var Att = 10;
+var Itt = 30;
+var Mode = "Normal";
+
+var Rad = 1.5;
 
 var balls = [];
 var gravity = null;
@@ -49,7 +50,7 @@ function setColor(f) {
 		stroke(0x00,0x44,0xFF);
 	else if (f <= 6/6)
 		stroke(0x76,0x00,0x89);
-	strokeWeight(10);
+	strokeWeight(13);
 }
 
 
@@ -264,9 +265,7 @@ class Rope {
 				e.do_borders();
 				
 				for(let i = 0; i < balls.length; i++)
-				{
 					e.do_circle(balls[i].c, balls[i].r/2, -0.8);
-				}
 		
 			}
 		})
@@ -353,8 +352,7 @@ function draw() {
 	//DRAW
 	
 	fill(245);
-	
-	strokeWeight(2);
+	noStroke();
 	rect(0, 0, Sx, Sy);
 	
 	if (Mode == "Normal" || Mode == "Pd" || Mode == "Pontos") {

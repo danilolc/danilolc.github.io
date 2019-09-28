@@ -8,23 +8,29 @@
 <script language="javascript" type="text/javascript" src="rope.js"></script>
 
 <style> 
-    html {
-        display: table;
-        margin: auto;
-    }
-    body {
-        height: 100%;
-        display: table-cell;
-        vertical-align: middle;
+	html {
+		display: table;
+		margin: auto;
+	}
+	body {
+		height: 100%;
+		display: table-cell;
+		vertical-align: middle;
 		line-height: 1.5;
-    }
+	}
 	input, select {
 		float: right;
 	}
 	div {
 		margin: auto;
 		width: 50%;
-		
+		border-style: solid;	
+		border-width: 1px;
+		padding: 7px;
+	}
+	canvas{ 
+		border-style: solid;	
+		border-width: 1px; 
 	}
 </style>
 
@@ -41,7 +47,7 @@ Gravidade:
 <input type="number" name="quantity" value=9.8 step=0.1 onchange="Grav = float(this.value)">
 <br>
 Elasticidade:
-<input type="number" name="quantity" value=2000 step=1 onchange="rope.K = float(this.value)">
+<input type="number" name="quantity" value=2000 step=1 onchange="Elastic = float(this.value); rope.K = float(this.value)">
 <br>
 Pontos:
 <input type="number" name="quantity" value=100 step=1 onchange="Points = float(this.value); setup()">
@@ -52,20 +58,21 @@ Tamanho:
 Atrito:
 <input type="number" name="quantity" value=10 step=1 onchange="Att = float(this.value)">
 <br>
-Repetições por desenho:
-<input type="number" name="quantity" value=10 step=1 onchange="Itt = int(this.value)">
+Repetições:
+<input type="number" name="quantity" value=30 step=1 onchange="Itt = int(this.value)">
 <br>
 Modo de desenho:
 <select onchange="Mode = this.value">
   <option value="Normal">Normal</option>
-  <option value="Pontos">Pontos</option>
+  <option value="Pontos" >Pontos</option>
   <option value="Slither">Slither</option>
 </select>
 <br>
-<button onclick="setup()">reset</button>
+<button onclick="setup()">Reiniciar corda</button>
+<button onclick="balls = []">Reiniciar círculos</button>
 <br>
 </div>
-
+<br>
 
 
 </body>
