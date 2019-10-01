@@ -9,10 +9,12 @@ var Sy = 480;
 var Grav = 9.8;
 var Elastic = 2000;
 var Points = 100;
-var Tam = 200;
+var Tam = 300;
 var Att = 10;
 var Itt = 30;
 var Mode = "Normal";
+var Method = "Midpoint";
+var Input = "PutBalls";
 
 var Rad = 1.5;
 
@@ -146,7 +148,7 @@ class Rope {
 		this.knots.forEach(function(e,i,a){
 			if (lx != -1) {
 				if (Mode == "Normal") {
-					stroke(e.stretch, 230, -e.stretch);
+					stroke(e.stretch, 230, 0);
 					strokeWeight(8);
 				}
 				else if (Mode == "Pd")
@@ -263,9 +265,9 @@ class Rope {
 				e.vel.div(1 + Att / 10000);
 				
 				e.do_borders();
-				
 				for(let i = 0; i < balls.length; i++)
-					e.do_circle(balls[i].c, balls[i].r/2, -0.8);
+					if (balls[i].active)
+						e.do_circle(balls[i].c, balls[i].r/2, -0.8);
 		
 			}
 		})
@@ -299,17 +301,19 @@ class Rope {
 				e.vel.div(1 + Att / 10000);
 				
 				e.do_borders();
+				for(let i = 0; i < balls.length; i++)
+					if (balls[i].active)
+						e.do_circle(balls[i].c, balls[i].r/2, -0.8);
 			}
 		})
 	}
 }
 
-class Ball
-{
-	constructor(c, r)
-	{
+class Ball {
+	constructor(c, r) {
 		this.c = c;
 		this.r = r;
+		this.active = true;
 	}
 }
 
@@ -322,10 +326,19 @@ function setup() {
 	resizeCanvas(Sx, Sy);
 	
 	rope = new Rope((Sx - Tam) / 2, 60, (Sx+Tam) / 2, 60, Points, 10);
-	rope.knots[0].fixed = true;
-	rope.knots[Points/2].fixed = true;
-	//rope.knots[Points-1].fixed = true;
-	//rope.knots[Points-1].mass = 90;
+
+	if (Input == "PutBalls" || Input == "MouseRope") {
+		rope.knots[0].fixed = true;
+		rope.knots[Points-1].fixed = true;
+	} else if (Input == "MouseBall") {
+		rope.knots[0].fixed = true;
+		rope.knots[int(Points) / 2].fixed = true;
+
+		balls = [];
+
+		let c = createVector(0,0);
+		balls.push(new Ball(c, 40));
+	}
 
 	gravity = createVector(0, Grav);
 
@@ -339,6 +352,17 @@ var lasttime = 0;
 
 function draw() {
 	
+	if (Input == "MouseRope") {
+		rope.knots[0].pos.x = mouseX;
+		rope.knots[0].pos.y = mouseY;
+	} else if (Input == "MouseBall") {
+		if (balls.length > 0) {
+			balls[0].c.x = mouseX;
+			balls[0].c.y = mouseY;
+			balls[0].active = mouseIsPressed;
+		}
+	}
+
 	//CALCULATE
 	
 	var dt = millis() / 1000 - lasttime;
@@ -347,8 +371,10 @@ function draw() {
 	gravity = createVector(0, Grav);
 	
 	dt = 0.016;
-	for (let i = 0; i < Itt; i++) rope.midpoint(dt);
-	
+	if (Method == "Midpoint")
+		for (let i = 0; i < Itt; i++) rope.midpoint(dt);
+	else if (Method == "Euler")
+		for (let i = 0; i < Itt; i++) rope.euler(dt);
 	//DRAW
 	
 	fill(245);
@@ -359,9 +385,11 @@ function draw() {
 		rope.draw();
 		
 		stroke(0);
-		strokeWeight(1);
+		strokeWeight(1.5);
+		fill(255,150,0);
 		for(let i = 0; i < balls.length; i++)
-			ellipse(balls[i].c.x, balls[i].c.y, balls[i].r, balls[i].r);
+			if (balls[i].active)
+				ellipse(balls[i].c.x, balls[i].c.y, balls[i].r, balls[i].r);
 	}
 	else if (Mode == "Slither") {
 		imageMode(CORNER);	
@@ -370,16 +398,19 @@ function draw() {
 		rope.draw_slither();
 		
 		stroke(0);
-		strokeWeight(1);
+		strokeWeight(2);
+		fill(255,255,255);
 		for(let i = 0; i < balls.length; i++)
-			ellipse(balls[i].c.x, balls[i].c.y, balls[i].r, balls[i].r);
+			if (balls[i].active)
+				ellipse(balls[i].c.x, balls[i].c.y, balls[i].r, balls[i].r);
 	}
 
 }
 
 function mouseClicked() {
-	if (mouseX < Sx && mouseX > 0 && mouseY < Sy && mouseY > 0) {
-		var c = createVector(mouseX, mouseY);
-		balls.push(new Ball(c, 20));
-	}
+	if (Input == "PutBalls")
+		if (mouseX < Sx && mouseX > 0 && mouseY < Sy && mouseY > 0) {
+			var c = createVector(mouseX, mouseY);
+			balls.push(new Ball(c, 30));
+		}
 }

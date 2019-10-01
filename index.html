@@ -53,7 +53,7 @@ Pontos:
 <input type="number" name="quantity" value=100 step=1 onchange="Points = float(this.value); setup()">
 <br>
 Tamanho:
-<input type="number" name="quantity" value=200 step=1 onchange="Tam = float(this.value); setup()">
+<input type="number" name="quantity" value=300 step=1 onchange="Tam = float(this.value); setup()">
 <br>
 Atrito:
 <input type="number" name="quantity" value=10 step=1 onchange="Att = float(this.value)">
@@ -68,9 +68,22 @@ Modo de desenho:
   <option value="Slither">Slither</option>
 </select>
 <br>
-<button onclick="setup()">Reiniciar corda</button>
-<button onclick="balls = []">Reiniciar círculos</button>
+Método de aproximação:
+<select onchange="Method = this.value">
+  <option value="Midpoint" >Ponto Médio</option>
+  <option value="Euler">Euler</option>
+</select>
 <br>
+Método de entrada:
+<select onchange="Input = this.value; setup()">
+  <option value="PutBalls">Colocar esferas</option>
+  <option value="MouseRope">Corda no mouse</option> 
+  <option value="MouseBall">Esfera no mouse</option>
+</select>
+<br>
+<center>
+<button onclick="setup()">Reiniciar</button>
+</center>
 </div>
 <br>
 
