@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Trabalho de Física}
+\author{Cristhian Grundmann\\Danilo Lemos Cardoso}
+\date{October 2019}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introdução}
+
+Foi feita a simulação de um elástico. O elástico é discretizado em uma sequência finita de pontos, de tal modo que dois pontos consecutivos se comportem como uma mola:
+$$ F = -k^2x $$
+onde $x$ é a variação em relação à uma distância normal,
+$F$ é a intensidade da força e
+$k$ é uma constante.
+
+Cada ponto possui três atributos: posição, velocidade e aceleração.
+
+A equação diferencial de segunda ordem foi estimada numericamente por dois métodos: o método e Euler e o método do ponto médio.
+
+Há um formulário interativo que permite a manipulação de variáveis, como número de pontos, gravidade, constante elástica, e o método de aproximação a ser usado.
+
+\section*{Método de Euler}
+O método de Euler foi implementado da seguinte maneira.
+
+A posição de um ponto é atualizada somando-a com sua velocidade(multiplicada por um intervalo de tempo fixo). A velocidade é atualizada somando-a com sua aceleração. A aceleração é calculada, com exatidão, através das novas posições dos pontos.
+
+\section*{Método do ponto médio}
+O método do ponto médio foi implementado da seguinte maneira.
+
+A posição é atualizada segundo o método de Euler, as para a metade do intervalo do tempo. A aceleração dos pontos é calculada com exatidão. A velocidade dos pontos é atualizada com o método de Euler com metade do intervalo do tempo. A posição é atualizada a partir da posição inicial e da velocidade, usando Euler com intervalo de tempo inteiro.
+
+\section*{Colisão com círculos}
+Para melhor entretenimento, foi adicionado um esquema de colisão entre o elástico e círculos fixos, de modo que o elástico possa deslizar.
+
+A colisão é testada ponto por ponto. Caso um ponto esteja dentro de um círculo, sua posição é alterada radialmente para ficar na circunferência e a componente da velocidade na direção radial invertida e multiplicada por uma constante específica do círculo.
+
+\section*{Conclusão}
+
+O experimento permitiu uma comparação entre os dois métodos, e ficou evidente que o método de Euler acumula erros de forma explosiva.
+
+
+
+
+\end{document}
