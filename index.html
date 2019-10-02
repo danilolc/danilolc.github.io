@@ -50,7 +50,7 @@ Elasticidade:
 <input type="number" name="quantity" value=2000 step=1 onchange="Elastic = float(this.value); rope.K = float(this.value)">
 <br>
 Pontos:
-<input type="number" name="quantity" value=100 step=1 onchange="Points = float(this.value); setup()">
+<input type="number" name="quantity" value=200 step=1 onchange="Points = float(this.value); setup()">
 <br>
 Tamanho:
 <input type="number" name="quantity" value=300 step=1 onchange="Tam = float(this.value); setup()">
@@ -75,14 +75,15 @@ Método de aproximação:
 </select>
 <br>
 Método de entrada:
-<select onchange="Input = this.value; setup()">
+<select onchange="Input = this.value;">
   <option value="PutBalls">Colocar esferas</option>
   <option value="MouseRope">Corda no mouse</option> 
   <option value="MouseBall">Esfera no mouse</option>
 </select>
 <br>
 <center>
-<button onclick="setup()">Reiniciar</button>
+<button onclick="setup()">Reiniciar Corda</button>
+<button onclick="setup_circles()">Reiniciar Esferas</button>
 </center>
 </div>
 <br>

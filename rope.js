@@ -8,7 +8,7 @@ var Sy = 480;
 
 var Grav = 9.8;
 var Elastic = 2000;
-var Points = 100;
+var Points = 200;
 var Tam = 300;
 var Att = 10;
 var Itt = 30;
@@ -140,6 +140,15 @@ class Rope {
 
 	}
 	
+	nexter(x, y) {
+		var dist = -1;
+		var v = createVector(x, y);
+		
+		this.knots.forEach(function(e,i,a){
+			//TODO - get the rope point that is nexter than point v
+		})
+	}
+	
 	draw() {
 		var lx = -1, ly = -1;
 		fill(255, 0, 0);
@@ -148,7 +157,8 @@ class Rope {
 		this.knots.forEach(function(e,i,a){
 			if (lx != -1) {
 				if (Mode == "Normal") {
-					stroke(e.stretch, 230, 0);
+					let x = e.stretch;
+					stroke(25*x*x-255, 255-50*x, 190);
 					strokeWeight(8);
 				}
 				else if (Mode == "Pd")
@@ -231,7 +241,7 @@ class Rope {
 		v1.add(d);
 		v2.sub(d);
 
-		return 50*x;
+		return x;
 	}
 
 	//Midpoint method
@@ -322,22 +332,39 @@ var Bg = null;
 var Head = null;
 var Body = null;
 
+var mouseBall = -1;
+var ballputting = -1;
+
+var mouseIsIn = () => (mouseX < Sx && mouseX > 0 && mouseY < Sy && mouseY > 0);
+
+function set_mouseball() {
+	if (mouseBall == -1) {
+		let c = createVector(mouseX, mouseY);
+		let ball = new Ball(c, 40);
+		ball.active = mouseIsPressed;
+		balls.push(ball);
+		mouseBall = balls.length - 1;
+	}
+}
+
+function setup_circles() {
+	balls = [];
+	mouseBall = -1;
+	set_mouseball();
+}
+
 function setup() {
 	resizeCanvas(Sx, Sy);
 	
-	rope = new Rope((Sx - Tam) / 2, 60, (Sx+Tam) / 2, 60, Points, 10);
-
+	rope = new Rope((Sx - Tam) / 2, 60, (Sx + Tam) / 2, 60, Points, 10);
+	set_mouseball();
+	
 	if (Input == "PutBalls" || Input == "MouseRope") {
 		rope.knots[0].fixed = true;
 		rope.knots[Points-1].fixed = true;
 	} else if (Input == "MouseBall") {
 		rope.knots[0].fixed = true;
 		rope.knots[int(Points) / 2].fixed = true;
-
-		balls = [];
-
-		let c = createVector(0,0);
-		balls.push(new Ball(c, 40));
 	}
 
 	gravity = createVector(0, Grav);
@@ -352,14 +379,22 @@ var lasttime = 0;
 
 function draw() {
 	
+	balls[mouseBall].active = false;
 	if (Input == "MouseRope") {
-		rope.knots[0].pos.x = mouseX;
-		rope.knots[0].pos.y = mouseY;
+		if (mouseIsPressed && mouseIsIn()) {
+			rope.knots[Points-1].pos.x = mouseX;
+			rope.knots[Points-1].pos.y = mouseY;
+		}
 	} else if (Input == "MouseBall") {
-		if (balls.length > 0) {
-			balls[0].c.x = mouseX;
-			balls[0].c.y = mouseY;
-			balls[0].active = mouseIsPressed;
+		balls[mouseBall].c.x = mouseX;
+		balls[mouseBall].c.y = mouseY;
+		balls[mouseBall].active = mouseIsPressed;
+	} else if (Input == "PutBalls") {
+		if (ballputting != -1) {
+			balls[ballputting].c.x = mouseX;
+			balls[ballputting].c.y = mouseY;
+			if (!mouseIsPressed)
+				ballputting = -1;
 		}
 	}
 
@@ -386,7 +421,7 @@ function draw() {
 		
 		stroke(0);
 		strokeWeight(1.5);
-		fill(255,150,0);
+		fill(65,184,37);
 		for(let i = 0; i < balls.length; i++)
 			if (balls[i].active)
 				ellipse(balls[i].c.x, balls[i].c.y, balls[i].r, balls[i].r);
@@ -407,10 +442,10 @@ function draw() {
 
 }
 
-function mouseClicked() {
-	if (Input == "PutBalls")
-		if (mouseX < Sx && mouseX > 0 && mouseY < Sy && mouseY > 0) {
-			var c = createVector(mouseX, mouseY);
-			balls.push(new Ball(c, 30));
-		}
+function mousePressed() {
+	if (Input == "PutBalls" && mouseIsIn()) {
+		var c = createVector(mouseX, mouseY);
+		balls.push(new Ball(c, 30));
+		ballputting = balls.length - 1;
+	}
 }
