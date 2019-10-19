@@ -58,15 +58,17 @@ function setColor(f) {
 
 
 //Classes -------------
-class Sphere {
-	constructor(pos, r, mass) {
-		this.pos = pos.copy();
-		
+class Ball {
+	constructor(c, r, mass = 20) {
+		this.c = c.copy();
+		this.r = r;
+
 		this.vel = createVector(0, 0);
 		this.acc = createVector(0, 0);
 
 		this.mass = mass;
 		this.fixed = true;
+		this.active = true;
 	}
 }
 
@@ -102,19 +104,24 @@ class Knot {
 			this.pos.x = Rad;
 		}
 	} 
-
-	do_circle(center, r, e) {
+//balls[i].c, balls[i].r/2,
+	do_circle(ball, e) {
 	    if(this.fixed) return;
 		
-	    var ds = this.pos.copy().sub(center);
+	    var ds = this.pos.copy().sub(ball.c);
 	    var dist = ds.mag();
 		
-	    if(dist < r) {
+	    if(dist < ball.r) {
 			let k = ds.dot(this.vel) / (dist * dist);
 			let p = ds.copy().mult(2 * k * e);
 			this.vel.add(p);
-			ds.mult(r / dist);
-			this.pos = ds.add(center);
+			ds.mult(ball.r / dist);
+			ds.add(ball.c);
+			this.pos.set(ds);
+			
+			ds.sub(ball.c);
+			ds.mult(-20);
+			ball.acc.add(ds);
 	    }
 	}
 
@@ -277,10 +284,22 @@ class Rope {
 				e.do_borders();
 				for(let i = 0; i < balls.length; i++)
 					if (balls[i].active)
-						e.do_circle(balls[i].c, balls[i].r/2, -0.8);
+						e.do_circle(balls[i], -0.8);
 		
 			}
 		})
+		for(let i = 0; i < balls.length; i++)
+			if (balls[i].active) {
+				balls[i].vel.x += balls[i].acc.x * dt;
+				balls[i].vel.y += balls[i].acc.y * dt;
+				
+				balls[i].c.x += balls[i].vel.x * dt;
+				balls[i].c.y += balls[i].vel.y * dt;
+
+				balls[i].acc.set(gravity);
+				
+			}
+				
 	}
 
 	//Euler method
@@ -313,17 +332,9 @@ class Rope {
 				e.do_borders();
 				for(let i = 0; i < balls.length; i++)
 					if (balls[i].active)
-						e.do_circle(balls[i].c, balls[i].r/2, -0.8);
+						e.do_circle(balls[i], -0.8);
 			}
 		})
-	}
-}
-
-class Ball {
-	constructor(c, r) {
-		this.c = c;
-		this.r = r;
-		this.active = true;
 	}
 }
 
@@ -424,7 +435,7 @@ function draw() {
 		fill(65,184,37);
 		for(let i = 0; i < balls.length; i++)
 			if (balls[i].active)
-				ellipse(balls[i].c.x, balls[i].c.y, balls[i].r, balls[i].r);
+				ellipse(balls[i].c.x, balls[i].c.y, balls[i].r*2, balls[i].r*2);
 	}
 	else if (Mode == "Slither") {
 		imageMode(CORNER);	
@@ -437,7 +448,7 @@ function draw() {
 		fill(255,255,255);
 		for(let i = 0; i < balls.length; i++)
 			if (balls[i].active)
-				ellipse(balls[i].c.x, balls[i].c.y, balls[i].r, balls[i].r);
+				ellipse(balls[i].c.x, balls[i].c.y, balls[i].r*2, balls[i].r*2);
 	}
 
 }
@@ -445,7 +456,7 @@ function draw() {
 function mousePressed() {
 	if (Input == "PutBalls" && mouseIsIn()) {
 		var c = createVector(mouseX, mouseY);
-		balls.push(new Ball(c, 30));
+		balls.push(new Ball(c, 15));
 		ballputting = balls.length - 1;
 	}
 }
