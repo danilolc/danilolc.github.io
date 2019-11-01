@@ -245,6 +245,24 @@ void simplify(Tri t)
    
 }
 
+Boolean collide(Tri t, float cx, float cy, float l, float x, float y)
+{
+  if(t == null) return false;
+  
+  if(x < cx - l || x > cx + l || y < cy - l || y > cy + l) return false;
+  
+  if(t.f) return true;
+  l/= 2;
+  
+  Boolean b = false;
+  if(t.a != null) b |= collide(t.a, cx - l, cy - l, l, x, y);
+  if(t.b != null) b |= collide(t.b, cx + l, cy - l, l, x, y);
+  if(t.c != null) b |= collide(t.c, cx - l, cy + l, l, x, y);
+  if(t.d != null) b |= collide(t.d, cx + l, cy + l, l, x, y);
+  
+  return b;
+}
+
 PVector cm(Tri t, float x, float y, float l)
 {
   if(t == null) return new PVector(0, 0, 0);
