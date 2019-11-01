@@ -137,6 +137,114 @@ Tri trimg(String src)
   return ret;
 }
 
+
+void eatri(Tri t, float cx, float cy, float l, float x, float y, float r)
+{
+  if(l < 1) return;
+  if(t == null) return;
+  
+  float dx = x - cx;
+  float dy = y - cy;
+  
+  Boolean B = false;
+  Boolean hr = (x >= cx - l && x <= cx + l);
+  Boolean vr = (y >= cy - l && y <= cy + l);
+  Boolean a = (dx-l)*(dx-l)+(dy-l)*(dy-l) <= r*r;
+  Boolean b = (dx+l)*(dx+l)+(dy-l)*(dy-l) <= r*r;
+  Boolean c = (dx-l)*(dx-l)+(dy+l)*(dy+l) <= r*r;
+  Boolean d = (dx+l)*(dx+l)+(dy+l)*(dy+l) <= r*r;
+  
+  B |= (hr && vr);
+  B |= (abs(dx-l) <= r && vr);
+  B |= (abs(dx+l) <= r && vr);
+  B |= (abs(dy-l) <= r && hr);
+  B |= (abs(dy+l) <= r && hr);
+  B |= a | b | c | d;
+  
+  if(!B) return;
+  
+  if(a && b && c && d)
+  {
+    if(t.z == null) return;
+    fill(255, 255, 0);
+    //rect(cx - l, cy - l, 2*l, 2*l);
+    if(t.z.a == t) t.z.a = null; else
+    if(t.z.b == t) t.z.b = null; else
+    if(t.z.c == t) t.z.c = null; else
+    if(t.z.d == t) t.z.d = null;
+    
+    return;
+  }
+  
+  //fill(255, 0, 255);
+  //rect(cx - l, cy - l, 2*l, 2*l);
+  
+  if(t.a == null)
+  {
+    t.a = new Tri();
+    t.a.z = t;
+    t.a.f = t.f;
+  }
+  if(t.b == null)
+  {
+    t.b = new Tri();
+    t.b.z = t;
+    t.b.f = t.f;
+  }
+  if(t.c == null)
+  {
+    t.c = new Tri();
+    t.c.z = t;
+    t.c.f = t.f;
+  }
+  if(t.d == null)
+  {
+    t.d = new Tri();
+    t.d.z = t;
+    t.d.f = t.f;
+  }
+  
+  if(t.f)
+  {
+    t.f = false;
+    t.a.f = true;
+    t.b.f = true;
+    t.c.f = true;
+    t.d.f = true;
+  }
+  
+  l /= 2;
+  
+  eatri(t.a, cx - l, cy - l, l, x, y, r);
+  eatri(t.b, cx + l, cy - l, l, x, y, r);
+  eatri(t.c, cx - l, cy + l, l, x, y, r);
+  eatri(t.d, cx + l, cy + l, l, x, y, r);
+  simplify(t);
+  
+}
+
+void simplify(Tri t)
+{
+  if(t == null) return;
+  if(t.a != null) simplify(t.a);
+  if(t.b != null) simplify(t.b);
+  if(t.c != null) simplify(t.c);
+  if(t.d != null) simplify(t.d);
+  
+  if(t.a != null && t.a.f)
+  if(t.b != null && t.b.f)
+  if(t.c != null && t.c.f)
+  if(t.d != null && t.d.f)
+  {
+    t.f = true;
+    t.a = null;
+    t.b = null;
+    t.c = null;
+    t.d = null;
+  }
+   
+}
+
 PVector cm(Tri t, float x, float y, float l)
 {
   if(t == null) return new PVector(0, 0, 0);
