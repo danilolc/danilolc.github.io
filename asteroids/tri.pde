@@ -1,33 +1,63 @@
-int count = 0;
+class Roc
+{
+  Tri t;
+  float l;
+  PVector pos, vel, acc;
+  
+  Roc(String src)
+  {
+    t = trimg(src);
+    l = SIZE / 2;
+    pos = new PVector();
+    vel = new PVector();
+    acc = new PVector();
+  }
+  
+  void draw()
+  {
+    pushMatrix();
+    translate(pos.x, pos.y);
+    rotate(pos.z);
+    t.draw(0, 0, l);
+    popMatrix();
+  }
+}
+
+
+final int DEPTH = 9;
+final int SIZE = 1 << DEPTH;
+
 
 class Tri
 {
   Tri a, b, c, d, z;
-  Boolean f;
+  Boolean f, r;
   
   Tri()
   {
-    count++;
     a = null;
     b = null;
     c = null;
     d = null;
-    z = null;  
     f = false;
+    r = false;
   }
   
   void draw(float x, float y, float l)
   {
     if(f)
     {
+      if(r)
+      fill(0, 0, 255); else
       fill(255, 0, 0);
       rect(x - l, y - l, 2*l, 2*l);
+      
       return;
     }
     else
     {
-      fill(255, 255, 255);
-      //rect(x - l, y - l, 2*l, 2*l);
+      fill(255);
+      rect(x - l, y - l, 2*l, 2*l);
     }
     l /= 2;
     if(a != null) a.draw(x - l, y - l, l);
@@ -36,111 +66,139 @@ class Tri
     if(d != null) d.draw(x + l, y + l, l);
   }
   
-}
-
-final int DEPTH = 8;
-
-Tri trimg(String src)
-{
-  PImage img = loadImage(src);
-  
-  if(img == null) return null;
-  Tri ret = new Tri();
-  
-  img.loadPixels();
-  if(img.width != 1 << DEPTH || img.height != 1 << DEPTH) return ret;
-  for(int x = 0; x < (1 << DEPTH); x++)
-  for(int y = 0; y < (1 << DEPTH); y++)
+  void simplify()
   {
-    if(red(img.pixels[x + y*(1 << DEPTH)]) == 255)
-    if(green(img.pixels[x + y*(1 << DEPTH)]) == 255)
-    if(blue(img.pixels[x + y*(1 << DEPTH)]) == 255) continue;
     
-    Tri t = ret;
+    if(a != null) a.simplify();
+    if(b != null) b.simplify();
+    if(c != null) c.simplify();
+    if(d != null) d.simplify();
     
-    for(int k = DEPTH - 1; k >= 0; k--)
+    
+    if(a != null && a.f)
+    if(b != null && b.f)
+    if(c != null && c.f)
+    if(d != null && d.f)
     {
-      if(((x >> k) & 1) == 0)
-      {
-        if(((y >> k) & 1) == 0)
-        {
-          if(t.a == null)
-          {
-            t.a = new Tri();
-            t.a.z = t;
-          }
-          t = t.a;
-        }
-        else
-        {
-          if(t.c == null)
-          {
-            t.c = new Tri();
-            t.c.z = t;
-          }
-          t = t.c;
-        }
-      }
-      else
-      {
-        if(((y >> k) & 1) == 0)
-        {
-          if(t.b == null)
-          {
-            t.b = new Tri();
-            t.b.z = t;
-          }
-          t = t.b;
-        }
-        else
-        {
-          if(t.d == null)
-          {
-            t.d = new Tri();
-            t.d.z = t;
-          }
-          t = t.d;
-        }
-      }
-    }
-    t.f = true;
-    Tri m = t.z;
-    while(true)
-    {
-      if(m == null) return ret;
-      if(m.a != null)
-      if(m.b != null)
-      if(m.c != null)
-      if(m.d != null)
-      if(m.a.f && m.b.f && m.c.f && m.d.f)
-      { 
-        m.f = true;
-        m.a = null;
-        m.b = null;
-        m.c = null;
-        m.d = null;
-        m = m.z;
-        //count -= 4;
-        continue;
-      }
-      
-      break;
-      
+      f = true;
+      a = null;
+      b = null;
+      c = null;
+      d = null;
     }
     
     
+    if(a == null && b == null && c == null && d == null && z != null && !f)
+    {
+      if(z.a == this) z.a = null; else
+      if(z.b == this) z.b = null; else
+      if(z.c == this) z.c = null; else
+      if(z.d == this) z.d = null;
+    }
+    
+    
+     
   }
   
-  
-  
-  println(count + " tris");
-  return ret;
 }
 
+
+Tri trimg(String str)
+{
+  PImage img = loadImage(str);
+  if(img == null) return null;
+  
+  //img.loadPixels();
+  if(img.width != SIZE | img.height != SIZE) return null;
+  
+  Tri t = new Tri();
+  for(int x = 0; x < img.width; x++)
+  {
+    for(int y = 0; y < img.height; y++)
+    {
+      if(red(img.pixels[x + SIZE*y]) == 255)
+      if(green(img.pixels[x + SIZE*y]) == 255)
+      if(blue(img.pixels[x + SIZE*y]) == 255) continue;
+    
+      img.pixels[x+SIZE*y] = color(255, 0, 0);
+     
+      Tri k = t;
+      for(int i = DEPTH - 1; i >= 0; i--)
+      {
+        if(((x >> i) & 1) == 0)
+        {
+          if(((y >> i) & 1) == 0)
+          {
+              if(k.a == null) 
+              {
+                k.a = new Tri();
+                k.a.z = k;
+              }
+              k = k.a;
+          }
+          else
+          {
+            if(k.c == null) 
+            {
+                k.c = new Tri();
+                k.c.z = k;
+            }
+            k = k.c;
+          }
+          
+        }
+        else
+        {
+          if(((y >> i) & 1) == 0)
+          {
+            if(k.b == null) 
+            {
+                k.b = new Tri();
+                k.b.z = k;
+            }
+            k = k.b;
+          }
+          else
+          {
+            if(k.d == null) 
+            {
+                k.d = new Tri();
+                k.d.z = k;
+            }
+            k = k.d;
+          }
+        }
+      }
+      k.f = true;
+      while(true)
+      {
+        if(k.z == null) break;
+        k = k.z;
+        if(k.a == null) break;
+        if(k.b == null) break;
+        if(k.c == null) break;
+        if(k.d == null) break;
+        if(k.a.f && k.b.f && k.c.f && k.d.f)
+        {
+          k.a = null;
+          k.b = null;
+          k.c = null;
+          k.d = null;
+          k.f = true;
+        }
+        else break;
+      }
+    }
+  }
+  //img.updatePixels();
+  //image(img, 0, 0);
+  //simplify(t);
+  return t;
+}
 
 void eatri(Tri t, float cx, float cy, float l, float x, float y, float r)
 {
-  if(l < 1) return;
+  if(2*l < 1) return;
   if(t == null) return;
   
   float dx = x - cx;
@@ -183,25 +241,25 @@ void eatri(Tri t, float cx, float cy, float l, float x, float y, float r)
   {
     t.a = new Tri();
     t.a.z = t;
-    t.a.f = t.f;
+    //t.a.f = t.f;
   }
   if(t.b == null)
   {
     t.b = new Tri();
     t.b.z = t;
-    t.b.f = t.f;
+    //t.b.f = t.f;
   }
   if(t.c == null)
   {
     t.c = new Tri();
     t.c.z = t;
-    t.c.f = t.f;
+    //t.c.f = t.f;
   }
   if(t.d == null)
   {
     t.d = new Tri();
     t.d.z = t;
-    t.d.f = t.f;
+    //t.d.f = t.f;
   }
   
   if(t.f)
@@ -219,30 +277,25 @@ void eatri(Tri t, float cx, float cy, float l, float x, float y, float r)
   eatri(t.b, cx + l, cy - l, l, x, y, r);
   eatri(t.c, cx - l, cy + l, l, x, y, r);
   eatri(t.d, cx + l, cy + l, l, x, y, r);
-  simplify(t);
   
 }
 
-void simplify(Tri t)
+PVector cm(Tri t, float x, float y, float l)
 {
-  if(t == null) return;
-  if(t.a != null) simplify(t.a);
-  if(t.b != null) simplify(t.b);
-  if(t.c != null) simplify(t.c);
-  if(t.d != null) simplify(t.d);
+  if(t == null) return new PVector(0, 0, 0);
   
-  if(t.a != null && t.a.f)
-  if(t.b != null && t.b.f)
-  if(t.c != null && t.c.f)
-  if(t.d != null && t.d.f)
-  {
-    t.f = true;
-    t.a = null;
-    t.b = null;
-    t.c = null;
-    t.d = null;
-  }
-   
+  if(t.f) return new PVector(x, y, 4*l*l);
+  PVector cma = cm(t.a, x - l/2, y - l/2, l/2);
+  PVector cmb = cm(t.b, x + l/2, y - l/2, l/2);
+  PVector cmc = cm(t.c, x - l/2, y + l/2, l/2);
+  PVector cmd = cm(t.d, x + l/2, y + l/2, l/2);
+  float mass = cma.z+cmb.z+cmc.z+cmd.z;
+  if(mass == 0) return new PVector(0, 0, 0);
+  return new PVector(
+  (cma.x*cma.z + cmb.x*cmb.z + cmc.x*cmc.z + cmd.x*cmd.z) / mass,
+  (cma.y*cma.z + cmb.y*cmb.z + cmc.y*cmc.z + cmd.y*cmd.z) / mass,
+  mass
+  );
 }
 
 Boolean collide(Tri t, float cx, float cy, float l, float x, float y)
@@ -263,37 +316,84 @@ Boolean collide(Tri t, float cx, float cy, float l, float x, float y)
   return b;
 }
 
-PVector cm(Tri t, float x, float y, float l)
+Tri trixyt = null;
+int trixyi = 0;
+Boolean trixy(Tri t, int x, int y)
 {
-  if(t == null) return new PVector(0, 0, 0);
-  if(t.f) return new PVector(x, y, 4*l*l);
-  l /= 2;
-  PVector a = cm(t.a, x - l, y - l, l);
-  PVector b = cm(t.b, x + l, y - l, l);
-  PVector c = cm(t.c, x - l, y + l, l);
-  PVector d = cm(t.d, x + l, y + l, l);
-  float mass = a.z+b.z+c.z+d.z;
-  if(mass == 0) return new PVector(0, 0, 0);
-  return new PVector(
-  (a.x*a.z+b.x*b.z+c.x*c.z+d.x*d.z) / mass,
-  (a.y*a.z+b.y*b.z+c.y*c.z+d.y*d.z) / mass,
-  mass
-  );
+  if(t == null) return false;
+  
+  for(trixyi = DEPTH - 1; trixyi >= 0; trixyi--)
+  {
+    trixyt = t;
+    if(t == null) return false;
+    if(t.f) return true;
+    
+    if(((x >> trixyi) & 1) == 0)
+    {
+      if(((y >> trixyi) & 1) == 0)
+      {
+        t = t.a;
+      }
+      else
+      {
+        t = t.c;
+      }
+    }
+    else
+    {
+      if(((y >> trixyi) & 1) == 0)
+      {
+        t = t.b;
+      }
+      else
+      {
+        t = t.d;
+      }
+    }
+  }
+  if(t == null) return false;
+  if(t.f) return true;
+  return false;
 }
 
+void wash(Tri t)
+{
+  if(t == null) return;
+  t.r = false;
+  if(t.a != null) wash(t.a);
+  if(t.b != null) wash(t.b);
+  if(t.c != null) wash(t.c);
+  if(t.d != null) wash(t.d);
+}
+
+void carve(Roc roc, float x, float y, float r)
+{
+  x -= roc.pos.x;
+  y -= roc.pos.y;
+  eatri(roc.t, 0, 0, roc.l, x * cos(-roc.pos.z) - y * sin(-roc.pos.z), x * sin(-roc.pos.z) + y * cos(-roc.pos.z), r);
+  roc.t.simplify();
+}
+
+Roc r = null;
 void setup()
 {
   size(512, 512);
+  //noStroke();
+  strokeWeight(1);
+  stroke(255, 0, 0);
   rectMode(CORNER);
-  Tri t = trimg("img.bmp");
-  if(t == null) return;
-  t.draw(256, 256, 256);
-  PVector c = cm(t, 256, 256, 256);
-  println("MAS: " + c.z);
-  strokeWeight(8);
-  stroke(0, 255, 0);
-  point(c.x, c.y);
+  background(0);
+  r = new Roc("img.png");
+  if(r.t == null) exit();
 }
 
+
 void draw()
-{}
+{
+  r.pos = new PVector(256, 256, (float)millis() / 1000);
+  if(mousePressed) carve(r, mouseX, mouseY, 20);
+  background(0);
+  r.draw();
+  //PVector c = cm(r.t, 256, 256, 256);
+  
+}
