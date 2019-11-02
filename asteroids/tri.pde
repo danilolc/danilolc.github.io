@@ -2,7 +2,7 @@ class Roc
 {
   Tri t;
   float l;
-  PVector pos, vel, acc;
+  PVector pos, vel, acc, c;
   
   Roc(String src)
   {
@@ -11,6 +11,7 @@ class Roc
     pos = new PVector();
     vel = new PVector();
     acc = new PVector();
+    c = new PVector();
   }
   
   void draw()
@@ -18,13 +19,38 @@ class Roc
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(pos.z);
-    t.draw(0, 0, l);
+    t.draw(c.x, c.y, l);
+    fill(100, 255, 100);
+    ellipse(0, 0, 5, 5);
     popMatrix();
+    
+  }
+  
+  void reCenter()
+  {
+    /*
+    PVector k = new PVector(c.x, c.y, c.z);
+    c = cm(t, 0, 0, l);
+    k.x += c.x;
+    k.y += c.y;
+    pos.x += k.x * cos(-pos.z) - k.y * sin(-pos.z);
+    pos.y += k.x * sin(-pos.z) + k.y * cos(-pos.z);
+    */
+  }
+  
+  void update(float dt)
+  {
+    pos.x += vel.x * dt + acc.x * dt*dt / 2;
+    pos.y += vel.y * dt + acc.y * dt*dt / 2;
+    pos.z += vel.z * dt + acc.z * dt*dt / 2;
+    vel.x += acc.x*dt;
+    vel.y += acc.y*dt;
+    vel.z += acc.z*dt;
   }
 }
 
 
-final int DEPTH = 9;
+final int DEPTH = 8;
 final int SIZE = 1 << DEPTH;
 
 
@@ -45,11 +71,11 @@ class Tri
   
   void draw(float x, float y, float l)
   {
+    
     if(f)
     {
-      if(r)
-      fill(0, 0, 255); else
-      fill(255, 0, 0);
+      stroke(170, 130, 150);
+      fill(185, 122, 87);
       rect(x - l, y - l, 2*l, 2*l);
       
       return;
@@ -57,7 +83,7 @@ class Tri
     else
     {
       fill(255);
-      rect(x - l, y - l, 2*l, 2*l);
+      //rect(x - l, y - l, 2*l, 2*l);
     }
     l /= 2;
     if(a != null) a.draw(x - l, y - l, l);
@@ -370,30 +396,54 @@ void carve(Roc roc, float x, float y, float r)
 {
   x -= roc.pos.x;
   y -= roc.pos.y;
-  eatri(roc.t, 0, 0, roc.l, x * cos(-roc.pos.z) - y * sin(-roc.pos.z), x * sin(-roc.pos.z) + y * cos(-roc.pos.z), r);
+  eatri(roc.t, 0, 0, roc.l, x * cos(-roc.pos.z) - y * sin(-roc.pos.z) - roc.c.x, x * sin(-roc.pos.z) + y * cos(-roc.pos.z) - roc.c.y, r);
   roc.t.simplify();
+}
+
+void rocbomb(Roc roc, float X, float Y)
+{
+  float x = X - roc.pos.x;
+  float y = Y - roc.pos.y;
+
+  if(collide(r.t, 0, 0, r.l, x * cos(-roc.pos.z) - y * sin(-roc.pos.z) - roc.c.x, x * sin(-roc.pos.z) + y * cos(-roc.pos.z) - roc.c.y))
+  {
+    carve(roc, X, Y, 40);
+    roc.reCenter();
+    bomb = null;
+  }
 }
 
 Roc r = null;
 void setup()
 {
   size(512, 512);
-  //noStroke();
-  strokeWeight(1);
-  stroke(255, 0, 0);
+  //fullScreen();
+  noStroke();
   rectMode(CORNER);
   background(0);
   r = new Roc("img.png");
+  r.l = 300;
   if(r.t == null) exit();
+  r.reCenter();
 }
 
+PVector bomb = null;
 
 void draw()
 {
-  r.pos = new PVector(256, 256, (float)millis() / 1000);
-  if(mousePressed) carve(r, mouseX, mouseY, 20);
   background(0);
-  r.draw();
-  //PVector c = cm(r.t, 256, 256, 256);
+  r.pos = new PVector(256, 256, (float)millis() / 1000);
   
+  
+  if(bomb != null)
+  {
+    bomb.y += bomb.z;
+    bomb.z += 0.2;
+    fill(255, 0, 100);
+    ellipse(bomb.x, bomb.y, 15, 15);
+    rocbomb(r, bomb.x, bomb.y);
+  }
+  if(mousePressed) bomb = new PVector(mouseX, mouseY, 0);
+  
+  r.draw();
 }
