@@ -21,8 +21,8 @@ class Tri {
       rect(x - l, y - l, 2*l, 2*l);
       return;
     } else {
-      fill(255);
-      rect(x - l, y - l, 2*l, 2*l);
+      //fill(255);
+      //rect(x - l, y - l, 2*l, 2*l);
     }
     l /= 2;
     if(this.a != null) this.a.draw(x - l, y - l, l);
@@ -346,7 +346,7 @@ function wash(t) {
 function carve(roc, x, y, r) {
   x -= roc.pos.x;
   y -= roc.pos.y;
-  eatri(roc.t, 0, 0, roc.l, x * cos(-roc.pos.z) - y * sin(-roc.pos.z), x * sin(-roc.pos.z) + y * cos(-roc.pos.z), r);
+  eatri(roc.t, 0, 0, roc.l, x * cos(-roc.rot) - y * sin(-roc.rot), x * sin(-roc.rot) + y * cos(-roc.rot), r);
   roc.t.simplify();
 }
 
