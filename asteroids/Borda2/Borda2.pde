@@ -3,7 +3,7 @@
 //  3
 final int[] DX = {1, 0, -1, 0};
 final int[] DY = {0, -1, 0, 1};
-final int R = 20;
+final int R = 30;
 
 void clean(PImage img) {
   for(int x = 0; x < img.width; x++)
@@ -18,8 +18,8 @@ class Meteor {
   float[] CM = {0.f, 0.f};
   long I = 0;
   
-  float px = 100, py = 100, r = 0;
-  float vx = 0.4, vy = 0.4, w = 0.02;
+  float px = 300, py = 300, r = 1;
+  float vx = 0, vy = 0, w = 0.02;
   
   Meteor(String source) {
     img = loadImage(source);
@@ -34,14 +34,13 @@ class Meteor {
     
     translate(px, py);
     rotate(r);
-    point(0, 0);
     translate(-CM[0], -CM[1]);
-    image(met.img, 0, 0, 128, 128);
+    image(met.img, 0, 0, 256, 256);
     
     popMatrix();
   }
   
-  void findBorder(){
+  void findBorder() {
     while(true) {
       int x = int(random(img.width));
       int y = int(random(img.height));
@@ -135,11 +134,12 @@ class Meteor {
     float i = x, j = y;
     
     float a = cos(angle), b = sin(angle);
-    float s = abs(a) + abs(b);
+    float s = max(abs(a), abs(b));
     a /= s;
     b /= s;
-    
-    while(x >= 0 && x < img.width && y >= 0 && y < img.width) {
+    for(int PPPP = 0; PPPP < 100000; PPPP++)
+    {
+    if(x >= 0 && x < img.width && y >= 0 && y < img.width) {
       if (img.pixels[x + y * img.width] != color(255,255,255)) {
         //img.pixels[x + y * img.width] = color(255,144,144);
         come(x, y);
@@ -147,18 +147,14 @@ class Meteor {
       } else {
         //img.pixels[x + y * img.width] = color(144,144,255);
       }
-      
-      if (floor(i + a) == x && floor(j - b) == y) {
-        i += a;
-        j -= b;
-      }
-      
+    }
       i += a;
       j -= b;
       
       x = floor(i);
       y = floor(j);
     }
+    
   }
 
 
@@ -179,12 +175,13 @@ void setup() {
 float angle;
 void draw() {
   fill(0);
-  background(220);
+  background(255);
   
   
   angle = -atan2(mouseY, mouseX);
   
   met.draw();
+  
   line(0, 0, mouseX, mouseY);
   
   text("M = " + met.M, 10, 10);
@@ -197,6 +194,21 @@ void draw() {
 
 void mouseClicked() {
   met.img.loadPixels();
-  met.raster(0, 0, angle);
+  float x = 0, y = 0, a = angle;
+  
+  x -= met.px;
+  y -= met.py;
+  
+  float _x = x;
+  x = x*cos(-met.r)-y*sin(-met.r);
+  y = _x*sin(-met.r)+y*cos(-met.r);
+  x += met.CM[0];
+  y += met.CM[1];
+  
+  point(x, y);
+  a += met.r;
+  
+  met.raster((int)x, (int)y, a);
+  println("x = " + x + ", y = " + y + ", a = " + a);
   met.img.updatePixels();
 }
