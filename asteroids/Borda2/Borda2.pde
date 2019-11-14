@@ -94,6 +94,7 @@ PImage img;
 void setup() {
   size(512, 512);
   noSmooth();
+  stroke(255,0,0);
   
   img = loadImage("img.png");
   
@@ -107,4 +108,90 @@ void setup() {
   text("X = " + CM[0], 10, 20);
   text("Y = " + CM[1], 10, 30);
   text("I = " + I, 10, 40);
+}
+
+
+
+void clean() {
+  for(int x = 0; x < img.width; x++)
+  for(int y = 0; y < img.height; y++)
+    img.pixels[x + y * img.width] = color(255);
+}
+
+//Percorrer a borda do círculo
+final int R = 20;
+void come(int x, int y) {
+  int _x, _y;
+  for(int i = -R; i <= R; i++) {
+    int fj = floor(sqrt(1 + R*R - i*i));
+    for (int j = -fj; j <= fj; j++) {
+      _x = x + i;
+      _y = y + j;
+      
+      if(_x >= 0 && _x < img.width && _y >= 0 && _y < img.width)
+        if (img.pixels[_x + _y * img.width] == color(0)) {
+          img.pixels[_x + _y * img.width] = color(255);
+          
+        }
+    }
+    
+  }
+  
+}
+
+void raster(int x, int y, float angle) {
+  float i = x, j = y;
+  
+  float a = cos(angle), b = sin(angle);
+  float s = abs(a) + abs(b);
+  a /= s;
+  b /= s;
+  
+  while(x >= 0 && x < img.width && y >= 0 && y < img.width) {
+    if (img.pixels[x + y * img.width] != color(255,255,255)) {
+      //img.pixels[x + y * img.width] = color(255,144,144);
+      come(x, y);
+      break;
+    } else {
+      //img.pixels[x + y * img.width] = color(144,144,255);
+    }
+    
+    if (floor(i + a) == x && floor(j - b) == y) {
+      i += a;
+      j -= b;
+    }
+    
+    i += a;
+    j -= b;
+    
+    x = floor(i);
+    y = floor(j);
+  }
+}
+
+
+float angle = -1.5;
+boolean done = false;
+void draw() {
+  
+  //img = loadImage("img.png");
+  //img.loadPixels();
+  
+  //clean();
+  angle = -atan2(mouseY, mouseX);
+  
+  //img.updatePixels();
+  
+  image(img, 0, 0, 512, 512);
+  
+  line(0, 0, mouseX, mouseY);
+  
+  text(angle, 10, 10);
+}
+
+
+void mouseClicked() {
+  img.loadPixels();
+  raster(0, 0, angle);
+  img.updatePixels();
 }
