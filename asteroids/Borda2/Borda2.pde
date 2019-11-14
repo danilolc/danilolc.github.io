@@ -3,7 +3,7 @@
 //  3
 final int[] DX = {1, 0, -1, 0};
 final int[] DY = {0, -1, 0, 1};
-final int R = 30;
+final int R = 50;
 
 void clean(PImage img) {
   for(int x = 0; x < img.width; x++)
@@ -18,8 +18,8 @@ class Meteor {
   float[] CM = {0.f, 0.f};
   long I = 0;
   
-  float px = 300, py = 300, r = 1;
-  float vx = 0, vy = 0, w = 0.02;
+  float px = 300, py = 300, r = 0;
+  float vx = 0, vy = 0, w = 0.004;
   
   Meteor(String source) {
     img = loadImage(source);
@@ -41,13 +41,18 @@ class Meteor {
   }
   
   void findBorder() {
+    M = 0;
+    CM[0] = 0;
+    CM[1] = 0;
+    I = 0;
+    
     while(true) {
       int x = int(random(img.width));
       int y = int(random(img.height));
     
-      if (img.pixels[x + y * img.width] != color(255,255,255)) {
+      if (alpha(img.pixels[x + y * img.width]) != 0) {
         do x--;
-        while(img.pixels[x + y * img.width] != color(255,255,255));
+        while(alpha(img.pixels[x + y * img.width]) != 0);
         
         contour(x, y, 0);
         break;
@@ -76,7 +81,7 @@ class Meteor {
     px += DX[di];
     py += DY[di];
   
-    return(img.pixels[px + py * img.width] != color(255, 255, 255));
+    return alpha(img.pixels[px + py * img.width]) != 0;
   }
 
   void contour(int ox, int oy, int oi) {
@@ -120,13 +125,26 @@ class Meteor {
         _y = y + j;
         
         if(_x >= 0 && _x < img.width && _y >= 0 && _y < img.width)
-          if (img.pixels[_x + _y * img.width] == color(0)) {
-            img.pixels[_x + _y * img.width] = color(255);
+          if (alpha(img.pixels[_x + _y * img.width]) != 0) {
+            img.pixels[_x + _y * img.width] = color(0, 0, 0, 0);
             
           }
       }
       
     }
+    
+    float _X_ = CM[0], _Y_ = CM[1];
+    findBorder();    
+    _X_ -= CM[0];
+    _Y_ -= CM[1];
+    
+    float __X_ = _X_;
+    
+    _X_ = _X_*cos(r) - _Y_*sin(r);
+    _Y_ = __X_*sin(r) + _Y_*cos(r);
+    
+    px -= _X_;
+    py -= _Y_;
     
   }
 
@@ -140,7 +158,7 @@ class Meteor {
     for(int PPPP = 0; PPPP < 100000; PPPP++)
     {
     if(x >= 0 && x < img.width && y >= 0 && y < img.width) {
-      if (img.pixels[x + y * img.width] != color(255,255,255)) {
+      if (alpha(img.pixels[x + y * img.width]) != 0) {
         //img.pixels[x + y * img.width] = color(255,144,144);
         come(x, y);
         break;
@@ -175,7 +193,7 @@ void setup() {
 float angle;
 void draw() {
   fill(0);
-  background(255);
+  background(100, 130, 82);
   
   
   angle = -atan2(mouseY, mouseX);
