@@ -112,7 +112,7 @@ class Meteor {
   long I = 0;
   
   float px = 300, py = 300, r = 0;
-  float vx = 0, vy = 0, w = 0.007;
+  float vx = 0, vy = 0, w = 0.000;
   
   Meteor(String source) {
     img = loadImage(source);
@@ -181,6 +181,7 @@ class Meteor {
   
     return alpha(img.pixels[px + py * img.width]) != 0;
   }
+  
 
   void contour(int ox, int oy, int oi) {
     
@@ -189,7 +190,7 @@ class Meteor {
     do {
       if (havePixel(px, py, di)) {
     
-        /*if (di == 0) {
+        /*if (di == 0) { 
           img.loadPixels();
           for(int i = px; havePixel(i, py, di); )
             img.pixels[++i + py * img.width] = color(255, 0, 255);        
@@ -213,26 +214,23 @@ class Meteor {
       
     I -= (CM[0]*CM[0]+CM[1]*CM[1]) * M;
   }
-
-  void come(int x, int y) {
-    int _x, _y;
-    for(int i = -R; i <= R; i++) {
-      int fj = floor(sqrt(1 + R*R - i*i));
-      for (int j = -fj; j <= fj; j++) {
-        _x = x + i;
-        _y = y + j;
-        
-        if(_x >= 0 && _x < img.width && _y >= 0 && _y < img.width)
-          if (alpha(img.pixels[_x + _y * img.width]) != 0) {
-            img.pixels[_x + _y * img.width] = color(0, 0, 0, 0);
-            
-          }
-      }
-      
+  
+  
+  void come(int x, int y, float w) {
+    
+    float a = 40, b = 20;
+    float cw = cos(w);
+    float sw = sin(w);
+    
+    for (float t = 0; t < 2*PI; t += HALF_PI / (2*a)) {
+      float _x = a*cos(t)*cw-b*sin(t)*sw+x;
+      float _y = a*cos(t)*sw+b*sin(t)*cw+y;
+      if(_x >= 0 && _x < img.width && _y >= 0 && _y < img.height)
+      img.pixels[(int)_x + img.width * (int)_y] = color(255, 0, 0, 255);
     }
     
     float _X_ = CM[0], _Y_ = CM[1];
-    findBorder();    
+    //findBorder();    
     _X_ -= CM[0];
     _Y_ -= CM[1];
     
@@ -243,7 +241,7 @@ class Meteor {
     
     px -= _X_;
     py -= _Y_;
-    
+    img.updatePixels();
   }
 
   void raster(int x, int y, float angle) {
@@ -257,7 +255,7 @@ class Meteor {
       if(x >= 0 && x < img.width && y >= 0 && y < img.width) {
         if (alpha(img.pixels[x + y * img.width]) != 0) {
           //img.pixels[x + y * img.width] = color(255,144,144);
-          come(x, y);
+          come(x, y, -angle);
           break;
         } else {
           //img.pixels[x + y * img.width] = color(144,144,255);
@@ -280,7 +278,7 @@ Ship ship;
 
 void setup() {
   size(512, 512);
-  //noSmooth();
+  noSmooth();
   stroke(255,0,0);
   
   ship = new Ship("ship.png");
