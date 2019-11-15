@@ -4,6 +4,7 @@
 final int[] DX = {1, 0, -1, 0};
 final int[] DY = {0, -1, 0, 1};
 final int R = 25;
+final int RELOAD = 45;
 final color BColor = color(123,123,123,0);
 
 void clean(PImage img) {
@@ -31,12 +32,9 @@ class Ship {
   int key_delay = 0;
   
   void shoot() {
-    if (key_delay != 0) {
-      key_delay--;
-      return;
-    }
-    key_delay = 15;
     
+    if(key_delay != 0) return;
+    key_delay = RELOAD;
     Laser = 3;
     
     met.img.loadPixels();
@@ -91,10 +89,18 @@ class Ship {
   }
   
   void draw() {
+    
+    if (key_delay != 0) {
+      key_delay--;
+    }
+    
     pushMatrix();
     
     translate(px, py);
     rotate(r);
+    
+    stroke(0, 255, 50, key_delay * (float)255 / RELOAD);
+    line(0, 0, 0, -1000);
     
     if(keyCode == UP && keyPressed)
     {
@@ -288,7 +294,7 @@ Ship ship;
 
 void setup() {
   size(512, 512);
-  noSmooth();
+  //noSmooth();
   stroke(255,0,0);
   
   ship = new Ship("ship.png");
