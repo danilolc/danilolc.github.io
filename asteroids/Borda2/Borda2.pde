@@ -3,7 +3,8 @@
 //  3
 final int[] DX = {1, 0, -1, 0};
 final int[] DY = {0, -1, 0, 1};
-final int R = 50;
+final int R = 25;
+final color BColor = color(123,123,123,0);
 
 void clean(PImage img) {
   for(int x = 0; x < img.width; x++)
@@ -11,31 +12,126 @@ void clean(PImage img) {
     img.pixels[x + y * img.width] = color(255);
 }
 
+int Laser = 0;
+
+void laser(int x, int y, int a, int b) {
+  
+}
+
+class Ship {
+  PImage img;
+  
+  float px = 200, py = 200, r = 0;
+  float vx = 0, vy = 0, w = 0.007;
+   
+  Ship(String source) {
+    img = loadImage(source);
+  }
+  
+  int key_delay = 0;
+  
+  void shoot() {
+    if (key_delay != 0) {
+      key_delay--;
+      return;
+    }
+    key_delay = 15;
+    
+    Laser = 3;
+    
+    met.img.loadPixels();
+    
+    float x = px, y = py, a = HALF_PI - r;
+    
+    x -= met.px;
+    y -= met.py;
+    
+    float _x = x;
+    x = x*cos(-met.r)-y*sin(-met.r);
+    y = _x*sin(-met.r)+y*cos(-met.r);
+    x += met.CM[0];
+    y += met.CM[1];
+    
+    a += met.r;
+    
+    met.raster((int)x, (int)y, a);
+    met.img.updatePixels();
+  }
+  
+  void update() {
+    if (keyPressed)
+    if (key == CODED) {
+      if (keyCode == UP) {
+        vx += 0.05*sin(r);
+        vy -= 0.05*cos(r);
+      }
+      if (keyCode == LEFT){
+        w -= 0.002;
+      }
+      if (keyCode == RIGHT){
+        w += 0.002;
+      }
+    } else if (key == ' ') {
+      shoot();
+    }
+    
+    if (px > 512) px -= 512;
+    if (px < 0) px += 512;
+    
+    if (py > 512) py -= 512;
+    if (py < 0) py += 512;
+    
+    px += vx;
+    py += vy;
+    r += w;
+    
+    vx *= 0.995;
+    vy *= 0.995;
+    w *= 0.99;
+  }
+  
+  void draw() {
+    pushMatrix();
+    
+    translate(px, py);
+    rotate(r);
+    imageMode(CENTER);
+    image(img, 0, 0, 500 / 8, 340 / 8);
+    imageMode(CORNER);
+    
+    popMatrix();
+  }
+  
+}
+
 class Meteor {
   PImage img;
   
   int M = 0;
-  float[] CM = {0.f, 0.f};
+  float[] CM = {0, 0};
   long I = 0;
   
   float px = 300, py = 300, r = 0;
-  float vx = 0, vy = 0, w = 0.004;
+  float vx = 0, vy = 0, w = 0.007;
   
   Meteor(String source) {
     img = loadImage(source);
     findBorder();
   }
   
-  void draw() {
+  void update() {
     px += vx;
     py += vy;
     r += w;
+  }
+  
+  void draw() {
     pushMatrix();
     
     translate(px, py);
     rotate(r);
     translate(-CM[0], -CM[1]);
-    image(met.img, 0, 0, 256, 256);
+    image(img, 0, 0, 256, 256);
     
     popMatrix();
   }
@@ -61,19 +157,21 @@ class Meteor {
   }
 
   void integrate(int px, int py, int di) {
-    int b = (di % 2 == 0)? px : py;
-    int v = -1;
+    int a = (di % 2 == 0)? px : py;
+    int v = 1;
     
-    if (di == 0 || di == 3) b++;
-    else v = 1;
+    if (di == 0 || di == 3) {
+      a++;
+      v = -1;
+    }
     
-    v *= b;
+    v *= a;
     M += v; // v * b
     
-    v *= b;
+    v *= a;
     CM[di % 2] += v; // v * b^2
     
-    v *= b;
+    v *= a;
     I += v; // v * b^3
   }
 
@@ -155,17 +253,16 @@ class Meteor {
     float s = max(abs(a), abs(b));
     a /= s;
     b /= s;
-    for(int PPPP = 0; PPPP < 100000; PPPP++)
-    {
-    if(x >= 0 && x < img.width && y >= 0 && y < img.width) {
-      if (alpha(img.pixels[x + y * img.width]) != 0) {
-        //img.pixels[x + y * img.width] = color(255,144,144);
-        come(x, y);
-        break;
-      } else {
-        //img.pixels[x + y * img.width] = color(144,144,255);
+    for(int PPPP = 0; PPPP < 100000; PPPP++){
+      if(x >= 0 && x < img.width && y >= 0 && y < img.width) {
+        if (alpha(img.pixels[x + y * img.width]) != 0) {
+          //img.pixels[x + y * img.width] = color(255,144,144);
+          come(x, y);
+          break;
+        } else {
+          //img.pixels[x + y * img.width] = color(144,144,255);
+        }
       }
-    }
       i += a;
       j -= b;
       
@@ -179,13 +276,15 @@ class Meteor {
 }
 
 Meteor met;
+Ship ship;
+
 void setup() {
   size(512, 512);
   //noSmooth();
   stroke(255,0,0);
   
+  ship = new Ship("ship.png");
   met = new Meteor("img.png");
-  met.draw();
   
   strokeWeight(3);
 }
@@ -193,40 +292,24 @@ void setup() {
 float angle;
 void draw() {
   fill(0);
-  background(100, 130, 82);
+  background(100+Laser*30, 110+Laser*30, 152+Laser*30);
+  
+  if (Laser > 0)
+    Laser--;
   
   
   angle = -atan2(mouseY, mouseX);
   
+  ship.update();
+  ship.draw();
+  
+  met.update();
   met.draw();
   
-  line(0, 0, mouseX, mouseY);
+  //text("M = " + met.M, 10, 10);
+  //text("X = " + met.CM[0], 10, 20);
+  //text("Y = " + met.CM[1], 10, 30);
+  //text("I = " + met.I, 10, 40);
+  //text(-ship.r + HALF_PI, 10, 50);
   
-  text("M = " + met.M, 10, 10);
-  text("X = " + met.CM[0], 10, 20);
-  text("Y = " + met.CM[1], 10, 30);
-  text("I = " + met.I, 10, 40);
-  text(angle, 10, 50);
-  
-}
-
-void mouseClicked() {
-  met.img.loadPixels();
-  float x = 0, y = 0, a = angle;
-  
-  x -= met.px;
-  y -= met.py;
-  
-  float _x = x;
-  x = x*cos(-met.r)-y*sin(-met.r);
-  y = _x*sin(-met.r)+y*cos(-met.r);
-  x += met.CM[0];
-  y += met.CM[1];
-  
-  point(x, y);
-  a += met.r;
-  
-  met.raster((int)x, (int)y, a);
-  println("x = " + x + ", y = " + y + ", a = " + a);
-  met.img.updatePixels();
 }
