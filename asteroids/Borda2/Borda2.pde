@@ -95,9 +95,19 @@ class Ship {
     
     translate(px, py);
     rotate(r);
+    
+    if(keyCode == UP && keyPressed)
+    {
+      stroke(255, 100, 0);
+      fill(255, 255, 0);
+      ellipse(0, 15, 10, 30);
+    }
+    
     imageMode(CENTER);
     image(img, 0, 0, 500 / 8, 340 / 8);
     imageMode(CORNER);
+    
+    
     
     popMatrix();
   }
