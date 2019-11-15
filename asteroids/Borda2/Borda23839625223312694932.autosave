@@ -4,7 +4,6 @@
 final int[] DX = {1, 0, -1, 0};
 final int[] DY = {0, -1, 0, 1};
 final int R = 25;
-final int RELOAD = 45;
 final color BColor = color(123,123,123,0);
 
 void clean(PImage img) {
@@ -32,10 +31,12 @@ class Ship {
   int key_delay = 0;
   
   void shoot() {
+    if (key_delay != 0) {
+      key_delay--;
+      return;
+    }
+    key_delay = 15;
     
-    if(key_delay != 0) return;
-    
-    key_delay = RELOAD;
     Laser = 3;
     
     met.img.loadPixels();
@@ -90,18 +91,10 @@ class Ship {
   }
   
   void draw() {
-    
-    if (key_delay != 0) {
-      key_delay--;
-    }
-    
     pushMatrix();
     
     translate(px, py);
     rotate(r);
-    
-    stroke(0, 255, 50, Laser * (float)255);
-    line(0, -20, 0, -1000);
     
     if(keyCode == UP && keyPressed)
     {
@@ -129,7 +122,7 @@ class Meteor {
   long I = 0;
   
   float px = 300, py = 300, r = 0;
-  float vx = 0, vy = 0, w = 0.000;
+  float vx = 0, vy = 0, w = 0.005;
   
   Meteor(String source) {
     img = loadImage(source);
@@ -295,7 +288,7 @@ Ship ship;
 
 void setup() {
   size(512, 512);
-  //noSmooth();
+  noSmooth();
   stroke(255,0,0);
   
   ship = new Ship("ship.png");
@@ -307,7 +300,7 @@ void setup() {
 float angle;
 void draw() {
   fill(0);
-  background(100, 110, 152);
+  background(100+Laser*30, 110+Laser*30, 152+Laser*30);
   
   if (Laser > 0)
     Laser--;
@@ -321,10 +314,6 @@ void draw() {
   met.update();
   met.draw();
   
-  
-  noStroke();
-  fill(255,255,255,Laser*50);
-  rect(0,0,512,512);
   //text("M = " + met.M, 10, 10);
   //text("X = " + met.CM[0], 10, 20);
   //text("Y = " + met.CM[1], 10, 30);
