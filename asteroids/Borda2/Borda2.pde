@@ -12,8 +12,8 @@ void clean(PImage img) {
   for(int y = 0; y < img.height; y++)
   {
     color c = img.pixels[x + y * img.width];
-    img.pixels[x + y * img.width] = color(255);
-    
+    //img.pixels[x + y * img.width] = color(255);
+    if(alpha(c) != 0) img.pixels[x + y * img.width] |= 0xff000000;
   }
   img.updatePixels();
 }
@@ -143,7 +143,7 @@ class Meteor {
   
   Meteor(String source) {
     img = loadImage(source);
-    //clean(img);
+    clean(img);
     findBorder();
   }
   
@@ -226,7 +226,6 @@ class Meteor {
         }*/
         
         
-    
         integrate(px, py, di);
         di = (di - 1) & ~-4; //(DI - 1) % 4
       } else {
@@ -245,52 +244,38 @@ class Meteor {
     I -= (CM[0]*CM[0]+CM[1]*CM[1]) * M;
   }
   
-  boolean come_has(int px, int py, int di) {
+  boolean comeHas(int px, int py, int di) {
     px += DX[di];
     py += DY[di];
-    if(px<=0 || px >= img.width-1 || py<=0 || py >= img.height-1) return true;
-    return alpha(img.pixels[px + py * img.width]) == 200;
+    float a = alpha(img.pixels[px + py * img.width]);
+    return a == 200 || a == 0;
   }
   
-
-  void come_contour(int ox, int oy, int oi, boolean eat) {
+  void comeContour(int ox, int oy, int oi) {
     
     int px = ox, py = oy, di = oi;
-    if(eat)
+    
     do {
-      
-      if (come_has(px, py, di)) {
-        if (di == 0) {
-          for(int i = px; !come_has(i+1, py, 2); i--)
-          {
-            img.pixels[i + py * img.width] = color(255, 255, 255, 0);
-            
-          }
+      if (comeHas(px, py, di)) {
+    
+        //img.pixels[px + py * img.width] = color(255, 0, 0, 254);
+        if (di == 0) { 
+    
+          for(int i = px; !comeHas(i+1, py, 2); i--)
+            img.pixels[i + py * img.width] = color(255, 0, 255, 0);        
+         
         }
         
-        di = (di - 1) & ~-4; //(DI - 1) % 4
+        di = (di - 1) & ~-4;
       } else {
         px += DX[di];
         py += DY[di];
         di = (di + 1) % 4;
       }
-    } while(px != ox || py != oy || di != oi); 
-    else
-    do {
-      
-      if (havePixel(px, py, di)) {
-        img.pixels[px + DX[di] + (py + DY[di]) * img.width] = color(255, 0, 0, 200);
-        di = (di - 1) & ~-4; //(DI - 1) % 4
-      } else {
-        px += DX[di];
-        py += DY[di];
-        di = (di + 1) % 4;
-      }
+    
     } while(px != ox || py != oy || di != oi);
     
-  
   }
-  
   
   void come(int x, int y, float w) {
     
@@ -305,19 +290,17 @@ class Meteor {
       {
         int al = (int)alpha(img.pixels[_x + img.width * _y]);
         if(al == 255) img.pixels[_x + img.width * _y] = color(255, 0, 255, 200);
-        else if(al != 200) img.pixels[_x + img.width * _y] = color(255, 255, 0, 200);
+        //else if(al != 200) img.pixels[_x + img.width * _y] = color(255, 255, 0, 200);
       }
     }
     
-    
-    while(!come_has(x, y, 0))
+    int x2 = x;
+    while(!comeHas(x2, y, 0))
     {
-      x++;
+      x2++;
     }
-    //x--;
-    come_contour(x, y, 0, true);
-    come_contour(x, y, 0, false);
     
+    comeContour(x2, y, 0);
     
     float _X_ = CM[0], _Y_ = CM[1];
     //findBorder();    
