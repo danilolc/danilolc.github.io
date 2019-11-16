@@ -75,10 +75,10 @@ class Ship {
         vy -= 0.05*cos(r);
       }
       if (keyCode == LEFT){
-        w -= 0.002;
+        r -= 0.06;
       }
       if (keyCode == RIGHT){
-        w += 0.002;
+        r += 0.06;
       }
     } else if (key == ' ') {
       shoot();
@@ -92,7 +92,7 @@ class Ship {
     
     px += vx;
     py += vy;
-    r += w;
+    //r += w;
     
     vx *= 0.995;
     vy *= 0.995;
@@ -206,7 +206,7 @@ class Meteor {
   boolean havePixel(int px, int py, int di) {
     px += DX[di];
     py += DY[di];
-  
+    
     return alpha(img.pixels[px + py * img.width]) != 0;
   }
   
@@ -224,6 +224,7 @@ class Meteor {
             img.pixels[++i + py * img.width] = color(255, 0, 255);        
           img.updatePixels();
         }*/
+        
         
     
         integrate(px, py, di);
@@ -277,12 +278,8 @@ class Meteor {
     else
     do {
       
-      if (come_has(px, py, di)) {
-        if(img.pixels[px + DX[di] + (py + DY[di]) * img.width] == color(255, 0, 255, 200))
-        {
-          contour(px, py, di);
-        }
-        
+      if (havePixel(px, py, di)) {
+        img.pixels[px + DX[di] + (py + DY[di]) * img.width] = color(255, 0, 0, 200);
         di = (di - 1) & ~-4; //(DI - 1) % 4
       } else {
         px += DX[di];
@@ -319,6 +316,7 @@ class Meteor {
     }
     //x--;
     come_contour(x, y, 0, true);
+    come_contour(x, y, 0, false);
     
     
     float _X_ = CM[0], _Y_ = CM[1];
