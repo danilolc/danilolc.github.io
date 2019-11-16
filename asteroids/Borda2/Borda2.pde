@@ -224,6 +224,7 @@ class Meteor {
             img.pixels[++i + py * img.width] = color(255, 0, 255);        
           img.updatePixels();
         }*/
+        
     
         integrate(px, py, di);
         di = (di - 1) & ~-4; //(DI - 1) % 4
@@ -246,26 +247,51 @@ class Meteor {
   boolean come_has(int px, int py, int di) {
     px += DX[di];
     py += DY[di];
-  
+    if(px<=0 || px >= img.width-1 || py<=0 || py >= img.height-1) return true;
     return alpha(img.pixels[px + py * img.width]) == 200;
   }
   
 
-  void come_contour(int ox, int oy, int oi) {
+  void come_contour(int ox, int oy, int oi, boolean eat) {
     
     int px = ox, py = oy, di = oi;
-    
+    if(eat)
     do {
-      if (havePixel(px, py, di)) {
+      
+      if (come_has(px, py, di)) {
+        if (di == 0) {
+          for(int i = px; !come_has(i+1, py, 2); i--)
+          {
+            img.pixels[i + py * img.width] = color(255, 255, 255, 0);
+            
+          }
+        }
+        
         di = (di - 1) & ~-4; //(DI - 1) % 4
       } else {
         px += DX[di];
         py += DY[di];
         di = (di + 1) % 4;
       }
-    
+    } while(px != ox || py != oy || di != oi); 
+    else
+    do {
+      
+      if (come_has(px, py, di)) {
+        if(img.pixels[px + DX[di] + (py + DY[di]) * img.width] == color(255, 0, 255, 200))
+        {
+          contour(px, py, di);
+        }
+        
+        di = (di - 1) & ~-4; //(DI - 1) % 4
+      } else {
+        px += DX[di];
+        py += DY[di];
+        di = (di + 1) % 4;
+      }
     } while(px != ox || py != oy || di != oi);
     
+  
   }
   
   
@@ -286,6 +312,13 @@ class Meteor {
       }
     }
     
+    
+    while(!come_has(x, y, 0))
+    {
+      x++;
+    }
+    //x--;
+    come_contour(x, y, 0, true);
     
     
     float _X_ = CM[0], _Y_ = CM[1];
