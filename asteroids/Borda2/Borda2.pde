@@ -73,10 +73,10 @@ class Ship {
       vy -= 0.05*cos(r);
     }
     if (KLeft){
-      r -= 0.06;
+      w -= 0.002;
     }
     if (KRight){
-      r += 0.06;
+      w += 0.002;
     }
     if (KSpace) {
       shoot();
@@ -90,7 +90,7 @@ class Ship {
     
     px += vx;
     py += vy;
-    //r += w;
+    r += w;
     
     vx *= 0.995;
     vy *= 0.995;
