@@ -68,19 +68,17 @@ class Ship {
   }
   
   void update() {
-    if (keyPressed)
-    if (key == CODED) {
-      if (keyCode == UP) {
-        vx += 0.05*sin(r);
-        vy -= 0.05*cos(r);
-      }
-      if (keyCode == LEFT){
-        r -= 0.06;
-      }
-      if (keyCode == RIGHT){
-        r += 0.06;
-      }
-    } else if (key == ' ') {
+    if (KUp) {
+      vx += 0.05*sin(r);
+      vy -= 0.05*cos(r);
+    }
+    if (KLeft){
+      r -= 0.06;
+    }
+    if (KRight){
+      r += 0.06;
+    }
+    if (KSpace) {
       shoot();
     }
     
@@ -113,8 +111,7 @@ class Ship {
     stroke(0, 255, 50, Laser * (float)255);
     line(0, -20, 0, -1000);
     
-    if(keyCode == UP && keyPressed)
-    {
+    if(KUp) {
       stroke(255, 100, 0);
       fill(255, 255, 0);
       ellipse(0, 15, 10, 30);
@@ -387,4 +384,42 @@ void draw() {
   //text("I = " + met.I, 10, 40);
   //text(-ship.r + HALF_PI, 10, 50);
   
+}
+
+boolean KLeft = false, KUp = false, KRight = false, KSpace = false;
+
+void keyPressed() {
+  switch (keyCode) {
+    case 37:
+      KLeft = true;
+      break;
+    case 38:
+      KUp = true;
+      break;
+    case 39:
+      KRight = true;
+      break;
+    case 32:
+      KSpace = true;
+      break;
+  }
+  println(keyCode);
+}
+ 
+void keyReleased() {
+  switch (keyCode) {
+    case 37:
+      KLeft = false;
+      break;
+    case 38:
+      KUp = false;
+      break;
+    case 39:
+      KRight = false;
+      break;
+    case 32:
+      KSpace = false;
+      break;
+  }
+  println(keyCode);
 }
