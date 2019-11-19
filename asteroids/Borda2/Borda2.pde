@@ -136,7 +136,7 @@ class Meteor {
   long I = 0;
   
   float px = 300, py = 300, r = 0;
-  float vx = 0, vy = 0, w = 0.00;
+  float vx = 0, vy = 0, w = 0.01;
   
   Meteor(String source) {
     img = loadImage(source);
@@ -204,7 +204,8 @@ class Meteor {
     px += DX[di];
     py += DY[di];
     
-    return alpha(img.pixels[px + py * img.width]) != 0;
+    float a = alpha(img.pixels[px + py * img.width]);
+    return a != 0 && a != 200;
   }
   
 
@@ -241,24 +242,17 @@ class Meteor {
     I -= (CM[0]*CM[0]+CM[1]*CM[1]) * M;
   }
   
-  boolean comeHas(int px, int py, int di) {
-    px += DX[di];
-    py += DY[di];
-    float a = alpha(img.pixels[px + py * img.width]);
-    return a == 200 || a == 0;
-  }
-  
   void comeContour(int ox, int oy, int oi) {
     
     int px = ox, py = oy, di = oi;
     
     do {
-      if (comeHas(px, py, di)) {
+      if (havePixel(px, py, di)) {
     
-        //img.pixels[px + py * img.width] = color(255, 0, 0, 254);
+        img.pixels[px + py * img.width] = color(255, 0, 0, 254);
         if (di == 0) { 
     
-          for(int i = px; !comeHas(i+1, py, 2); i--)
+          for(int i = px; !havePixel(i+1, py, 2); i--)
             img.pixels[i + py * img.width] = color(255, 0, 255, 0);        
          
         }
@@ -287,17 +281,16 @@ class Meteor {
       {
         int al = (int)alpha(img.pixels[_x + img.width * _y]);
         if(al == 255) img.pixels[_x + img.width * _y] = color(255, 0, 255, 200);
-        //else if(al != 200) img.pixels[_x + img.width * _y] = color(255, 255, 0, 200);
+        else if(al != 200) img.pixels[_x + img.width * _y] = color(255, 255, 0, 200);
       }
     }
     
     int x2 = x;
-    while(!comeHas(x2, y, 0))
-    {
+    while(havePixel(x2, y, 0))
       x2++;
-    }
     
-    comeContour(x2, y, 0);
+    img.pixels[x2 + img.width * y] = color(255, 255, 255, 255);
+    //comeContour(x2, y, 0);
     
     float _X_ = CM[0], _Y_ = CM[1];
     //findBorder();    
@@ -384,42 +377,33 @@ void draw() {
   //text("I = " + met.I, 10, 40);
   //text(-ship.r + HALF_PI, 10, 50);
   
+  if (KDown)
+    image(met.img, 0, 0, 512, 512);
+  
 }
 
-boolean KLeft = false, KUp = false, KRight = false, KSpace = false;
+boolean KLeft = false, KUp = false, KRight = false, KDown = false, KSpace = false;
+
+boolean setKey(int k, boolean v) {
+  switch (k) {
+    case LEFT:
+      return KLeft = v;
+    case UP:
+      return KUp = v;
+    case RIGHT:
+      return KRight = v;
+    case DOWN:
+      return KDown = v;
+    case ' ':
+      return KSpace = v;
+  }
+  return false;
+}
 
 void keyPressed() {
-  switch (keyCode) {
-    case 37:
-      KLeft = true;
-      break;
-    case 38:
-      KUp = true;
-      break;
-    case 39:
-      KRight = true;
-      break;
-    case 32:
-      KSpace = true;
-      break;
-  }
-  println(keyCode);
+  setKey(keyCode, true);
 }
  
 void keyReleased() {
-  switch (keyCode) {
-    case 37:
-      KLeft = false;
-      break;
-    case 38:
-      KUp = false;
-      break;
-    case 39:
-      KRight = false;
-      break;
-    case 32:
-      KSpace = false;
-      break;
-  }
-  println(keyCode);
+  setKey(keyCode, false);
 }
