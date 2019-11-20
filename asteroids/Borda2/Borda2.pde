@@ -5,7 +5,7 @@ final int[] DX = {1, 0, -1, 0};
 final int[] DY = {0, -1, 0, 1};
 final int R = 25;
 final int RELOAD = 45;
-final color BColor = color(123,123,123,0);
+final color BColor = color(123,255,123,123);
 
 void clean(PImage img) {
   for(int x = 0; x < img.width; x++)
@@ -242,69 +242,75 @@ class Meteor {
     I -= (CM[0]*CM[0]+CM[1]*CM[1]) * M;
   }
   
-  void comeContour(int ox, int oy, int oi) {
+  void limpa(int minx, int maxx, int miny, int maxy) {
     
-    int px = ox, py = oy, di = oi;
-    
-    do {
-      if (havePixel(px, py, di)) {
-    
-        img.pixels[px + py * img.width] = color(255, 0, 0, 254);
-        if (di == 0) { 
-    
-          for(int i = px; !havePixel(i+1, py, 2); i--)
-            img.pixels[i + py * img.width] = color(255, 0, 255, 0);        
-         
-        }
-        
-        di = (di - 1) & ~-4;
-      } else {
-        px += DX[di];
-        py += DY[di];
-        di = (di + 1) % 4;
+    for(int j = maxy; j >= miny; j--){
+      int y = j * img.width;
+      
+      minx--;
+      if(img.pixels[minx + y] == BColor) {
+        while(img.pixels[--minx + y] == BColor);
+        minx++;
       }
+      else
+        while(img.pixels[++minx + y] != BColor);
+      
+      maxx++;
+      if(img.pixels[maxx + y] == BColor) {
+        while(img.pixels[++maxx + y] == BColor);
+        maxx--;
+      }
+      else
+        while(img.pixels[--maxx + y] != BColor);
+      
+      //img.pixels[minx + y - 1] = color(0,0,255);
+      //img.pixels[maxx + y + 1] = color(0,0,255);
+      
+      for(int i = minx + y; i <= maxx + y; i++)
+        img.pixels[i] = color(0,0,0,0);
+    }
     
-    } while(px != ox || py != oy || di != oi);
     
   }
   
   void come(int x, int y, float w) {
     
-    float a = 40, b = 20;
+    int miny = 9999, maxy = -1;
+    int minx = 9999, maxx = -1;
+    
+    float A = 40, B = 20;
     float cw = cos(w);
     float sw = sin(w);
     
-    for (float t = 0; t < 2*PI; t += HALF_PI / (2*a)) {
-      int _x = (int)(a*cos(t)*cw-b*sin(t)*sw+x);
-      int _y = (int)(a*cos(t)*sw+b*sin(t)*cw+y);
-      if(_x >= 0 && _x < img.width && _y >= 0 && _y < img.height)
-      {
-        int al = (int)alpha(img.pixels[_x + img.width * _y]);
-        if(al == 255) img.pixels[_x + img.width * _y] = color(255, 0, 255, 200);
-        else if(al != 200) img.pixels[_x + img.width * _y] = color(255, 255, 0, 200);
+    int lx = -1, ly = -1;
+    
+    for (float t = 0; t < 2*PI; t += HALF_PI / (2*A)) {
+      int _x = (int)(A*cos(t)*cw - B*sin(t)*sw + x);
+      int _y = (int)(A*cos(t)*sw + B*sin(t)*cw + y);
+      
+      if (lx == _x && ly == _y)
+        continue;
+      
+      if (_y > maxy) { 
+        maxy = _y;
+        minx = 9999;
+        maxx = -1;
       }
+      if(_y == maxy) {
+        if (_x > maxx)
+          maxx = _x;
+        if (_x < minx)
+          minx = _x;
+      }
+      if (_y < miny)
+        miny = _y;
+      
+      if(_x >= 0 && _x < img.width && _y >= 0 && _y < img.height)
+        img.pixels[_x + img.width * _y] = BColor;
     }
     
-    int x2 = x;
-    while(havePixel(x2, y, 0))
-      x2++;
+    limpa(minx, maxx, miny, maxy);
     
-    img.pixels[x2 + img.width * y] = color(255, 255, 255, 255);
-    //comeContour(x2, y, 0);
-    
-    float _X_ = CM[0], _Y_ = CM[1];
-    //findBorder();    
-    _X_ -= CM[0];
-    _Y_ -= CM[1];
-    
-    float __X_ = _X_;
-    
-    _X_ = _X_*cos(r) - _Y_*sin(r);
-    _Y_ = __X_*sin(r) + _Y_*cos(r);
-    
-    px -= _X_;
-    py -= _Y_;
-    img.updatePixels();
   }
 
   void raster(int x, int y, float angle) {
