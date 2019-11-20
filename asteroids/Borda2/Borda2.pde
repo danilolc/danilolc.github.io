@@ -257,7 +257,7 @@ class Meteor {
           while(img.pixels[++minx + y] != BColor);
       }
       
-      if (maxx < img.width) {
+      if (maxx < img.width - 1) {
         maxx++;
         if(img.pixels[maxx + y] == BColor) {
           while(img.pixels[++maxx + y] == BColor);
