@@ -108,7 +108,7 @@ class Ship {
     translate(px, py);
     rotate(r);
     
-    stroke(0, 255, 50, Laser * (float)255);
+    stroke(255, 0, 50, Laser * (float)255);
     line(0, -20, 0, -1000);
     
     if(KUp) {
@@ -291,6 +291,9 @@ class Meteor {
       if (lx == _x && ly == _y)
         continue;
       
+      if(_x < 0 || _x >= img.width || _y < 0 || _y >= img.height)
+        continue;
+      
       if (_y > maxy) { 
         maxy = _y;
         minx = 9999;
@@ -305,8 +308,7 @@ class Meteor {
       if (_y < miny)
         miny = _y;
       
-      if(_x >= 0 && _x < img.width && _y >= 0 && _y < img.height)
-        img.pixels[_x + img.width * _y] = BColor;
+      img.pixels[_x + img.width * _y] = BColor;
     }
     
     limpa(minx, maxx, miny, maxy);
@@ -359,7 +361,7 @@ void setup() {
 float angle;
 void draw() {
   fill(0);
-  background(100, 110, 152);
+  background(0);
   
   if (Laser > 0)
     Laser--;
