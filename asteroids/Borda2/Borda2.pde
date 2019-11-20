@@ -256,6 +256,10 @@ class Meteor {
         else
           while(img.pixels[++minx + y] != BColor);
       }
+      else {
+        if(img.pixels[minx + y] != BColor)
+          while(img.pixels[++maxx + y] != BColor);
+      }
       
       if (maxx < img.width - 1) {
         maxx++;
@@ -264,6 +268,10 @@ class Meteor {
           maxx--;
         }
         else
+          while(img.pixels[--maxx + y] != BColor);
+      } 
+      else {
+        if(img.pixels[maxx + y] != BColor)
           while(img.pixels[--maxx + y] != BColor);
       }
       
@@ -278,7 +286,6 @@ class Meteor {
   }
   
   void come(int x, int y, float w) {
-
     
     int miny = 9999, maxy = -1;
     int minx = 9999, maxx = -1;
@@ -296,8 +303,13 @@ class Meteor {
       if (lx == _x && ly == _y)
         continue;
       
-      if(_x < 0 || _x >= img.width || _y < 0 || _y >= img.height)
+      if(_y < 0 || _y >= img.height)
         continue;
+        
+      if(_x < 0)
+        _x = 0;
+      if(_x >= img.width)
+        _x = img.width - 1;
       
       if (_y > maxy) { 
         maxy = _y;
