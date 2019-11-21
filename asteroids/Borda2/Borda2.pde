@@ -340,8 +340,8 @@ class Meteor {
     float tor = ((x - CM[0]) * sw - (y - CM[1]) * cw) / I;
     this.w += tor * 10000;
     
-    this.vx += cw * 5000 / this.M;
-    this.vy += sw * 5000 / this.M;
+    this.vx += cos(r + w) * 5000 / this.M;
+    this.vy += sin(r + w) * 5000 / this.M;
     
   }
 
