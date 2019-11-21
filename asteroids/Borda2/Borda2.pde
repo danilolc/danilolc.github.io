@@ -1,4 +1,4 @@
-//   1
+//  1
 //2 | 0
 //  3
 final int[] DX = {1, 0, -1, 0};
@@ -19,10 +19,7 @@ void clean(PImage img) {
 }
 
 int Laser = 0;
-
-void laser(int x, int y, int a, int b) {
-  
-}
+float LaserX, LaserY, LaserA, LaserB;
 
 class Ship {
   PImage img;
@@ -44,27 +41,29 @@ class Ship {
   void shoot() {
     
     if(key_delay != 0) return;
-    
     key_delay = RELOAD;
+    
+    int dist = 20;
+    float sx = px + dist*cos(r-HALF_PI);
+    float sy = py + dist*sin(r-HALF_PI);
+    
+    //TODO - find nexter
+    float[] p = met.screen2img(sx, sy);
+    float[] end = met.raster((int)p[0], (int)p[1],  met.r - (r - HALF_PI));
+    
     Laser = 3;
+    LaserX = sx;
+    LaserY = sy;
     
-    met.img.loadPixels();
+    if (end != null) {
+      LaserA = end[0];
+      LaserB = end[1];
+    }
+    else {
+      LaserA = sx + 725*cos(r-HALF_PI);
+      LaserB = sy + 725*sin(r-HALF_PI);
+    }
     
-    float x = px, y = py, a = HALF_PI - r;
-    
-    x -= met.px;
-    y -= met.py;
-    
-    float _x = x;
-    x = x*cos(-met.r)-y*sin(-met.r);
-    y = _x*sin(-met.r)+y*cos(-met.r);
-    x += met.CM[0];
-    y += met.CM[1];
-    
-    a += met.r;
-    
-    met.raster((int)x, (int)y, a);
-    met.img.updatePixels();
   }
   
   void update() {
@@ -82,11 +81,11 @@ class Ship {
       shoot();
     }
     
-    if (px > 512+32) px -= 512+64;
-    if (px < 0-32) px += 512+64;
+    if (px > 512) px -= 512;
+    if (px < 0) px += 512;
     
-    if (py > 512+32) py -= 512+64;
-    if (py < 0-32) py += 512+64;
+    if (py > 512) py -= 512;
+    if (py < 0) py += 512;
     
     px += vx;
     py += vy;
@@ -107,12 +106,6 @@ class Ship {
     
     translate(px + ox, py + oy);
     rotate(r);
-    
-    if(ox == 0 && oy == 0)
-    {
-      stroke(255, 0, 50, Laser * (float)255);
-      line(0, -20, 0, -1000);
-    }
     
     if(KUp) {
       stroke(255, 100, 0);
@@ -151,6 +144,13 @@ class Meteor {
     px += vx;
     py += vy;
     r += w;
+    
+    if (px > 512) px -= 512;
+    if (px < 0) px += 512;
+    
+    if (py > 512) py -= 512;
+    if (py < 0) py += 512;
+    
   }
   
   void draw() {
@@ -163,6 +163,39 @@ class Meteor {
     
     popMatrix();
   }
+  
+  float[] screen2img(float x, float y) {
+    
+    x -= px;
+    y -= py;
+    
+    float _x = x;
+    x = x*cos(-r)-y*sin(-r);
+    y = _x*sin(-r)+y*cos(-r);
+    x += CM[0];
+    y += CM[1];
+    
+    float[] v = {x, y};
+    return v;
+  }
+  
+  float[] img2screen(float x, float y) {
+    
+    x -= CM[0];
+    y -= CM[1];
+    
+    float _x = x;
+    x = x*cos(r) - y*sin(r);
+    y = _x*sin(r) + y*cos(r);
+    
+    x += px;
+    y += py;
+    
+    float[] v = {x, y};
+    return v;
+  }
+  
+  
   
   void findBorder() {
     M = 0;
@@ -220,10 +253,8 @@ class Meteor {
       if (havePixel(px, py, di)) {
     
         /*if (di == 0) { 
-          img.loadPixels();
           for(int i = px; havePixel(i, py, di); )
             img.pixels[++i + py * img.width] = color(255, 0, 255);        
-          img.updatePixels();
         }*/
         
         
@@ -285,6 +316,7 @@ class Meteor {
         img.pixels[i] = color(0,0,0,0);
     }
     
+    img.updatePixels();
     
   }
   
@@ -345,7 +377,7 @@ class Meteor {
     
   }
 
-  void raster(int x, int y, float angle) {
+  float[] raster(int x, int y, float angle) {
     float i = x, j = y;
     
     float a = cos(angle), b = sin(angle);
@@ -357,7 +389,8 @@ class Meteor {
         if (alpha(img.pixels[x + y * img.width]) != 0) {
           //img.pixels[x + y * img.width] = color(255,144,144);
           come(x, y, -angle);
-          break;
+          return img2screen(x, y);
+          
         } else {
           //img.pixels[x + y * img.width] = color(144,144,255);
         }
@@ -369,6 +402,7 @@ class Meteor {
       y = floor(j);
     }
     
+    return null;
   }
 
 
@@ -388,16 +422,12 @@ void setup() {
   strokeWeight(3);
 }
 
-float angle;
+
+Meteor[] mets;
+
 void draw() {
   fill(0);
-  background(0, 120, 120);
-  
-  if (Laser > 0)
-    Laser--;
-  
-  
-  angle = -atan2(mouseY, mouseX);
+  background(20, 50, 90);
   
   ship.update();
   ship.draw(0, 0);
@@ -406,15 +436,22 @@ void draw() {
   met.update();
   met.draw();
   
+  if (Laser > 0) {
+    stroke(255, 0, 50, Laser * (float)255);
+      
+    line(LaserX, LaserY, LaserA, LaserB);
   
-  noStroke();
-  fill(255,255,255,Laser*50);
-  rect(0,0,512,512);
+    noStroke();
+    fill(255,255,255,Laser*50);
+    rect(0,0,512,512);
+    
+    Laser--;
+  }
+  
   //text("M = " + met.M, 10, 10);
   //text("X = " + met.CM[0], 10, 20);
   //text("Y = " + met.CM[1], 10, 30);
   //text("I = " + met.I, 10, 40);
-  //text(-ship.r + HALF_PI, 10, 50);
   
   if (KDown)
     image(met.img, 0, 0, 512, 512);
