@@ -1,4 +1,4 @@
-//  1
+//   1
 //2 | 0
 //  3
 final int[] DX = {1, 0, -1, 0};
@@ -261,7 +261,7 @@ class Meteor {
       }
       else {
         if(img.pixels[minx + y] != BColor)
-          while(img.pixels[++maxx + y] != BColor);
+          while(img.pixels[++minx + y] != BColor);
       }
       
       if (maxx < img.width - 1) {
