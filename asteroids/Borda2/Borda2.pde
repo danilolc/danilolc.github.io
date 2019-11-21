@@ -82,11 +82,11 @@ class Ship {
       shoot();
     }
     
-    if (px > 512) px -= 512;
-    if (px < 0) px += 512;
+    if (px > 512+32) px -= 512+64;
+    if (px < 0-32) px += 512+64;
     
-    if (py > 512) py -= 512;
-    if (py < 0) py += 512;
+    if (py > 512+32) py -= 512+64;
+    if (py < 0-32) py += 512+64;
     
     px += vx;
     py += vy;
@@ -97,7 +97,7 @@ class Ship {
     w *= 0.99;
   }
   
-  void draw() {
+  void draw(float ox, float oy) {
     
     if (key_delay != 0) {
       key_delay--;
@@ -105,11 +105,14 @@ class Ship {
     
     pushMatrix();
     
-    translate(px, py);
+    translate(px + ox, py + oy);
     rotate(r);
     
-    stroke(255, 0, 50, Laser * (float)255);
-    line(0, -20, 0, -1000);
+    if(ox == 0 && oy == 0)
+    {
+      stroke(255, 0, 50, Laser * (float)255);
+      line(0, -20, 0, -1000);
+    }
     
     if(KUp) {
       stroke(255, 100, 0);
@@ -387,7 +390,8 @@ void draw() {
   angle = -atan2(mouseY, mouseX);
   
   ship.update();
-  ship.draw();
+  ship.draw(0, 0);
+  //ship.draw(512, 0);
   
   met.update();
   met.draw();
