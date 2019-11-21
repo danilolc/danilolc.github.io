@@ -139,7 +139,7 @@ class Meteor {
   long I = 0;
   
   float px = 300, py = 300, r = 0;
-  float vx = 0, vy = 0, w = 0.01;
+  float vx = 0, vy = 0, w = 0.0;
   
   Meteor(String source) {
     img = loadImage(source);
@@ -331,7 +331,14 @@ class Meteor {
       img.pixels[_x + img.width * _y] = BColor;
     }
     
+    
+    
     limpa(minx, maxx, miny, maxy);
+    
+    
+    //(a,b)(c,d) = ad-bc
+    float tor = ((x - CM[0]) * sw - (y - CM[1]) * cw) / I;
+    this.w += tor * 10000;
     
   }
 
@@ -381,7 +388,7 @@ void setup() {
 float angle;
 void draw() {
   fill(0);
-  background(0);
+  background(0, 120, 120);
   
   if (Laser > 0)
     Laser--;
