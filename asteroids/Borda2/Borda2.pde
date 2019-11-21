@@ -43,21 +43,37 @@ class Ship {
     if(key_delay != 0) return;
     key_delay = RELOAD;
     
-    int dist = 20;
-    float sx = px + dist*cos(r-HALF_PI);
-    float sy = py + dist*sin(r-HALF_PI);
+    final int DIST = 20;
+    float sx = px + DIST*cos(r-HALF_PI);
+    float sy = py + DIST*sin(r-HALF_PI);
     
-    //TODO - find nexter
-    float[] p = met.screen2img(sx, sy);
-    float[] end = met.raster((int)p[0], (int)p[1],  met.r - (r - HALF_PI));
+    Meteor target = null;
+    float[] e = null;
+    
+    float dist = 99999;
+    for (Meteor met : mets) {
+      float[] buff = met.screen2img(sx, sy);
+      buff = met.raster((int)buff[0], (int)buff[1],  met.r - (r - HALF_PI));
+      if (buff == null) continue;
+      
+      if (buff[2] < dist) {
+        dist = buff[2];
+        e = buff;
+        target = met;
+      }
+    
+    }
     
     Laser = 3;
     LaserX = sx;
     LaserY = sy;
     
-    if (end != null) {
-      LaserA = end[0];
-      LaserB = end[1];
+    if (target != null && e != null) {
+      target.come((int)e[0], (int)e[1], (r - HALF_PI) - target.r);
+      
+      float[] pos = target.img2screen(e[0], e[1]);
+      LaserA = pos[0];
+      LaserB = pos[1];
     }
     else {
       LaserA = sx + 725*cos(r-HALF_PI);
@@ -388,8 +404,9 @@ class Meteor {
       if(x >= 0 && x < img.width && y >= 0 && y < img.width) {
         if (alpha(img.pixels[x + y * img.width]) != 0) {
           //img.pixels[x + y * img.width] = color(255,144,144);
-          come(x, y, -angle);
-          return img2screen(x, y);
+          //come(x, y, -angle);
+          float[] v = {x, y, PPPP};
+          return v;//img2screen(x, y);
           
         } else {
           //img.pixels[x + y * img.width] = color(144,144,255);
@@ -404,11 +421,11 @@ class Meteor {
     
     return null;
   }
-
-
 }
 
-Meteor met;
+ArrayList<Meteor> mets = new ArrayList<Meteor>();
+
+//Meteor met;
 Ship ship;
 
 void setup() {
@@ -417,13 +434,14 @@ void setup() {
   stroke(255,0,0);
   
   ship = new Ship("ship.png");
-  met = new Meteor("img.png");
+  mets.add(new Meteor("img.png"));
+  mets.add(new Meteor("img.png"));
+  
+  mets.get(0).px += 100;
   
   strokeWeight(3);
 }
 
-
-Meteor[] mets;
 
 void draw() {
   fill(0);
@@ -433,8 +451,11 @@ void draw() {
   ship.draw(0, 0);
   //ship.draw(512, 0);
   
-  met.update();
-  met.draw();
+  for (Meteor met : mets) {
+    met.update();
+    met.draw();
+  }
+  
   
   if (Laser > 0) {
     stroke(255, 0, 50, Laser * (float)255);
@@ -448,13 +469,14 @@ void draw() {
     Laser--;
   }
   
+  
   //text("M = " + met.M, 10, 10);
   //text("X = " + met.CM[0], 10, 20);
   //text("Y = " + met.CM[1], 10, 30);
   //text("I = " + met.I, 10, 40);
   
   if (KDown)
-    image(met.img, 0, 0, 512, 512);
+    image(mets.get(0).img, 0, 0, 512, 512);
   
 }
 
