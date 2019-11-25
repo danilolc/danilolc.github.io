@@ -292,45 +292,73 @@ class Meteor {
     I -= (CM[0]*CM[0]+CM[1]*CM[1]) * M;
   }
   
+  boolean has_left = false, has_right = false;
+  
+  void detect_left(int px, int py) {
+    
+  }
+  
+  void detect_right(int px, int py) {
+    
+  }
+  
+  
   void limpa(int minx, int maxx, int miny, int maxy) {
     
+    //print(red(img.get(minx, maxy)));
+    
+    for (int i = maxx; i >= minx; i--) 
+        img.set(i, maxy + 1, color(255,0,255));
+    
     for(int j = maxy; j >= miny; j--){
-      int y = j * img.width;
       
-      if (minx > 0) {
+      // Esquerda
+      if (minx > 0) { // Função decrescente
         minx--;
-        if(img.pixels[minx + y] == BColor) {
-          while(img.pixels[--minx + y] == BColor);
+        if(img.get(minx, j) == BColor) {
+          do img.set(minx, j + 1, color(0,255,255));
+          while(img.get(--minx, j) == BColor);
+          
+          img.set(minx, j + 1, color(0,255,255));
           minx++;
         }
-        else
-          while(img.pixels[++minx + y] != BColor);
+        else // Função crescente
+          do img.set(minx, j + 1, color(255,0,0));
+          while(img.get(++minx, j) != BColor);
       }
-      else {
-        if(img.pixels[minx + y] != BColor)
-          while(img.pixels[++minx + y] != BColor);
+      else { // Canto da imagem
+        if(img.get(minx, j) != BColor)
+          while(img.get(++minx, j) != BColor);
       }
       
+      // Direita
       if (maxx < img.width - 1) {
         maxx++;
-        if(img.pixels[maxx + y] == BColor) {
-          while(img.pixels[++maxx + y] == BColor);
+        if(img.get(maxx, j) == BColor) {
+          do img.set(maxx, j + 1, color(0,255,255));
+          while(img.get(++maxx, j) == BColor);
+          
+          img.set(maxx, j + 1, color(0,255,255));
           maxx--;
         }
         else
-          while(img.pixels[--maxx + y] != BColor);
+          do img.set(maxx, j + 1, color(255,0,0));
+          while(img.get(--maxx, j) != BColor);
       } 
       else {
-        if(img.pixels[maxx + y] != BColor)
-          while(img.pixels[--maxx + y] != BColor);
+        if(img.get(maxx, j) != BColor)
+          while(img.get(--maxx, j) != BColor);
       }
       
       //img.pixels[minx + y - 1] = color(0,0,255);
       //img.pixels[maxx + y + 1] = color(0,0,255);
       
-      for(int i = minx + y; i <= maxx + y; i++)
-        img.pixels[i] = color(0,0,0,0);
+      for(int i = minx; i <= maxx; i++)
+        img.set(i, j, color(0,0,0,0));
     }
+    
+    for (int i = maxx + 1; i >= minx - 1; i--) 
+      img.set(i, miny, color(0,0,0));
     
     img.updatePixels();
     
@@ -435,9 +463,9 @@ void setup() {
   
   ship = new Ship("ship.png");
   mets.add(new Meteor("img.png"));
-  mets.add(new Meteor("img.png"));
+  //mets.add(new Meteor("img.png"));
   
-  mets.get(0).px += 100;
+  mets.get(0).px -= 100;
   
   strokeWeight(3);
 }
@@ -475,8 +503,10 @@ void draw() {
   //text("Y = " + met.CM[1], 10, 30);
   //text("I = " + met.I, 10, 40);
   
-  if (KDown)
+  if (KDown) {
+    background(20, 50, 90);
     image(mets.get(0).img, 0, 0, 512, 512);
+  }
   
 }
 
