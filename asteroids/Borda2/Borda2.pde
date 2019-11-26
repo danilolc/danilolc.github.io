@@ -364,28 +364,24 @@ class Meteor {
         img.set(i, j, color(0,0,0,0));
       
       
-      // Percorre a borda
+      // Percorre a borda da elipse
       if (left_x > minx - 1) {
-        do detect_left(--left_x, left_y);
+        do detect_left(left_x--, left_y);
         while(left_x != minx - 1);
         
-        //left_y--;
         detect_left(left_x, --left_y);
       }
       else if (left_x == minx - 1) {
         detect_left(left_x, --left_y);
       }
       else if (left_x < minx - 1) {
-        detect_left(left_x, --left_y);
-        //left_y--;
+        left_y--;
         do detect_left(++left_x, left_y);
         while(left_x != minx - 1);
       }
       
-      
-      
       if (right_x < maxx + 1) {
-        do detect_right(++right_x, right_y);
+        do detect_right(right_x++, right_y);
         while(right_x != maxx + 1);
         
         detect_right(right_x, --right_y);
@@ -394,17 +390,14 @@ class Meteor {
         detect_right(right_x, --right_y);
       }
       else if (right_x > maxx + 1) {
-        detect_right(right_x, --right_y);
-        
+        --right_y;
         do detect_right(--right_x, right_y);
         while(right_x != maxx + 1);
       }
-      
-      
     }
     
-    detect_right(right_x, --right_y);
-    for (int i = right_x - 1; i >= left_x; i--) 
+    --right_y;
+    for (int i = right_x - 1; i > left_x; i--) 
       detect_right(i, right_y);
     
     img.updatePixels();
