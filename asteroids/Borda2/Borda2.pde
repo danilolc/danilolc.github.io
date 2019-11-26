@@ -396,6 +396,15 @@ class Meteor {
     for (int i = right_x - 1; i > left_x; i--) 
       detect_right(i, right_y);
     
+    //TODO ---
+    //if (had_left && had_right)
+    //  Delete last
+      
+    //if (first_left + 1 == first_right)
+    //  Delete
+    // ---
+      
+    
     img.updatePixels();
     
   }
