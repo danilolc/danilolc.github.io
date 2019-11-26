@@ -6,6 +6,7 @@ final int[] DY = {0, -1, 0, 1};
 final int R = 25;
 final int RELOAD = 45;
 final color BColor = color(123,255,123,123);
+final color GColor = color(255,42,203,213);
 
 void clean(PImage img) {
   for(int x = 0; x < img.width; x++)
@@ -292,39 +293,51 @@ class Meteor {
     I -= (CM[0]*CM[0]+CM[1]*CM[1]) * M;
   }
   
-  boolean has_left = false, has_right = false;
+  boolean had_left, had_right;
   
   void detect_left(int px, int py) {
-    
+    boolean has_left = alpha(img.get(px, py)) == 255;
+    //if(has_left && !had_left)
+    if (alpha(img.get(px, py)) != 255)
+      img.set(px, py, GColor);
+    else
+      img.set(px, py, color(255, 0, 0));
+      
+    had_left = has_left;
   }
   
   void detect_right(int px, int py) {
-    
+    boolean has_right = alpha(img.get(px, py)) == 255;
+    //if(has_right && !had_right)
+    if (alpha(img.get(px, py)) != 255)
+      img.set(px, py, GColor);
+    else
+      img.set(px, py, color(255, 0, 0));
+      
+    had_right = has_right;
   }
   
   
   void limpa(int minx, int maxx, int miny, int maxy) {
     
-    //print(red(img.get(minx, maxy)));
+    had_left = false;
+    had_right = false;
     
-    for (int i = maxx; i >= minx; i--) 
-        img.set(i, maxy + 1, color(255,0,255));
+    int left_x = maxx, left_y = maxy + 1;
+    int right_x = maxx - 1, right_y = maxy + 1;
     
     for(int j = maxy; j >= miny; j--){
       
       // Esquerda
       if (minx > 0) { // Função decrescente
-        minx--;
+        minx--; 
         if(img.get(minx, j) == BColor) {
-          do img.set(minx, j + 1, color(0,255,255));
           while(img.get(--minx, j) == BColor);
-          
-          img.set(minx, j + 1, color(0,255,255));
           minx++;
-        }
-        else // Função crescente
-          do img.set(minx, j + 1, color(255,0,0));
+        
+        } else { // Função crescente
           while(img.get(++minx, j) != BColor);
+        }
       }
       else { // Canto da imagem
         if(img.get(minx, j) != BColor)
@@ -335,30 +348,64 @@ class Meteor {
       if (maxx < img.width - 1) {
         maxx++;
         if(img.get(maxx, j) == BColor) {
-          do img.set(maxx, j + 1, color(0,255,255));
           while(img.get(++maxx, j) == BColor);
-          
-          img.set(maxx, j + 1, color(0,255,255));
           maxx--;
-        }
-        else
-          do img.set(maxx, j + 1, color(255,0,0));
+        
+        } else {
           while(img.get(--maxx, j) != BColor);
+        }
       } 
       else {
         if(img.get(maxx, j) != BColor)
           while(img.get(--maxx, j) != BColor);
       }
       
-      //img.pixels[minx + y - 1] = color(0,0,255);
-      //img.pixels[maxx + y + 1] = color(0,0,255);
-      
       for(int i = minx; i <= maxx; i++)
         img.set(i, j, color(0,0,0,0));
+      
+      
+      // Percorre a borda
+      if (left_x > minx - 1) {
+        do detect_left(--left_x, left_y);
+        while(left_x != minx - 1);
+        
+        //left_y--;
+        detect_left(left_x, --left_y);
+      }
+      else if (left_x == minx - 1) {
+        detect_left(left_x, --left_y);
+      }
+      else if (left_x < minx - 1) {
+        detect_left(left_x, --left_y);
+        //left_y--;
+        do detect_left(++left_x, left_y);
+        while(left_x != minx - 1);
+      }
+      
+      
+      
+      if (right_x < maxx + 1) {
+        do detect_right(++right_x, right_y);
+        while(right_x != maxx + 1);
+        
+        detect_right(right_x, --right_y);
+      }
+      else if (right_x == maxx + 1) {
+        detect_right(right_x, --right_y);
+      }
+      else if (right_x > maxx + 1) {
+        detect_right(right_x, --right_y);
+        
+        do detect_right(--right_x, right_y);
+        while(right_x != maxx + 1);
+      }
+      
+      
     }
     
-    for (int i = maxx + 1; i >= minx - 1; i--) 
-      img.set(i, miny, color(0,0,0));
+    detect_right(right_x, --right_y);
+    for (int i = right_x - 1; i >= left_x; i--) 
+      detect_right(i, right_y);
     
     img.updatePixels();
     
@@ -480,7 +527,7 @@ void draw() {
   //ship.draw(512, 0);
   
   for (Meteor met : mets) {
-    met.update();
+    //met.update();
     met.draw();
   }
   
