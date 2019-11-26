@@ -8,6 +8,18 @@ final int RELOAD = 45;
 final color BColor = color(123,255,123,123);
 final color GColor = color(255,42,203,255);
 
+class Pixel {
+  Pixel(int x, int y) {
+    this.x = x;
+    this.y = y;
+  }
+  
+  public
+  int x;
+  int y;
+  boolean active = true;
+}
+
 void clean(PImage img) {
   for(int x = 0; x < img.width; x++)
   for(int y = 0; y < img.height; y++)
@@ -294,12 +306,16 @@ class Meteor {
   }
   
   boolean had_left, had_right;
+  ArrayList<Pixel> left_list = new ArrayList<Pixel>();
+  ArrayList<Pixel> right_list = new ArrayList<Pixel>();
   
   void detect_left(int px, int py) {
     boolean has_left = alpha(img.get(px, py)) == 255;
     
-    if(has_left && !had_left)
-      img.set(px, py, GColor);
+    if(has_left && !had_left) {
+      //img.set(px,py, color(255,0,0));
+      left_list.add(new Pixel(px, py));
+    }
     
     had_left = has_left;
   }
@@ -307,8 +323,10 @@ class Meteor {
   void detect_right(int px, int py) {
     boolean has_right = alpha(img.get(px, py)) == 255;
     
-    if(has_right && !had_right)
-      img.set(px, py, GColor);
+    if(has_right && !had_right) {
+      //img.set(px,py, color(255,0,0));
+      right_list.add(new Pixel(px, py));
+    }
       
     had_right = has_right;
   }
@@ -396,14 +414,32 @@ class Meteor {
     for (int i = right_x - 1; i > left_x; i--) 
       detect_right(i, right_y);
     
-    //TODO ---
-    //if (had_left && had_right)
-    //  Delete last
+    
+    if (had_left && had_right)
+      right_list.remove(right_list.size() - 1);
+    
+    if(!right_list.isEmpty() && !left_list.isEmpty()) {
+      Pixel first_r = right_list.get(0);
+      Pixel first_l = left_list.get(0);
+      if (first_r.x + 1 == first_l.x && first_r.y == first_l.y)
+        right_list.remove(0);
+    }
       
-    //if (first_left + 1 == first_right)
-    //  Delete
-    // ---
+    println("Left =  " + left_list.size());
+    println("Right = " + right_list.size());
+    
+    for (Pixel pixel : left_list) {
+      img.set(pixel.x, pixel.y, color(255,0,0));
+    }
+    for (Pixel pixel : right_list) {
+      img.set(pixel.x, pixel.y, color(255,0,0));
+    }
       
+    // Percorre as bordas
+    
+    
+    left_list.clear();
+    right_list.clear();
     
     img.updatePixels();
     
@@ -498,6 +534,7 @@ class Meteor {
 
 ArrayList<Meteor> mets = new ArrayList<Meteor>();
 
+PImage bgimg;
 //Meteor met;
 Ship ship;
 
@@ -506,26 +543,27 @@ void setup() {
   noSmooth();
   stroke(255,0,0);
   
+  bgimg = loadImage("sky.jpg");
+
   ship = new Ship("ship.png");
   mets.add(new Meteor("img.png"));
-  //mets.add(new Meteor("img.png"));
+  mets.add(new Meteor("img.png"));
   
   mets.get(0).px -= 100;
   
   strokeWeight(3);
 }
 
-
 void draw() {
   fill(0);
-  background(20, 50, 90);
+  background(bgimg);
   
   ship.update();
   ship.draw(0, 0);
   //ship.draw(512, 0);
   
   for (Meteor met : mets) {
-    //met.update();
+    met.update();
     met.draw();
   }
   
