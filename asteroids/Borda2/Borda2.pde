@@ -6,7 +6,7 @@ final int[] DY = {0, -1, 0, 1};
 final int R = 25;
 final int RELOAD = 45;
 final color BColor = color(123,255,123,123);
-final color GColor = color(255,42,203,213);
+final color GColor = color(255,42,203,255);
 
 void clean(PImage img) {
   for(int x = 0; x < img.width; x++)
@@ -297,22 +297,18 @@ class Meteor {
   
   void detect_left(int px, int py) {
     boolean has_left = alpha(img.get(px, py)) == 255;
-    //if(has_left && !had_left)
-    if (alpha(img.get(px, py)) != 255)
+    
+    if(has_left && !had_left)
       img.set(px, py, GColor);
-    else
-      img.set(px, py, color(255, 0, 0));
-      
+    
     had_left = has_left;
   }
   
   void detect_right(int px, int py) {
     boolean has_right = alpha(img.get(px, py)) == 255;
-    //if(has_right && !had_right)
-    if (alpha(img.get(px, py)) != 255)
+    
+    if(has_right && !had_right)
       img.set(px, py, GColor);
-    else
-      img.set(px, py, color(255, 0, 0));
       
     had_right = has_right;
   }
