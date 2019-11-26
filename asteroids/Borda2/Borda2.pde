@@ -4,7 +4,7 @@
 final int[] DX = {1, 0, -1, 0};
 final int[] DY = {0, -1, 0, 1};
 final int R = 25;
-final int RELOAD = 45;
+final int RELOAD = 30;
 final color BColor = color(123,255,123,123);
 final color GColor = color(255,42,203,255);
 
@@ -34,12 +34,19 @@ void clean(PImage img) {
 int Laser = 0;
 float LaserX, LaserY, LaserA, LaserB;
 
+final int[] Pixlist = {40, 64, 30, 60, 18, 62, 14, 66, 12, 54, 10, 44, 12, 30,
+                       16, 20, 18, 30, 18, 38, 30, 45, 40, 32, 43, 16, 43, 00,
+                     
+                       100 - 40, 64, 100 - 30, 60, 100 - 18, 62, 100 - 14, 66, 100 - 12, 54, 100 - 10, 44, 100 - 12, 30,
+                       100 - 16, 20, 100 - 18, 30, 100 - 18, 38, 100 - 30, 45, 100 - 40, 32, 100 - 43, 16, 100 - 43, 00};
+
 class Ship {
   PImage img;
   
   float px = 200, py = 200, r = 0;
   float vx = 0, vy = 0, w = 0.007;
   boolean up, left, right, bar;
+  
    
   Ship(String source) {
     img = loadImage(source);
@@ -93,6 +100,50 @@ class Ship {
       LaserB = sy + 725*sin(r-HALF_PI);
     }
     
+  }
+  
+  float[] img2screen(float x, float y) {
+    
+    x -= img.width / 2;
+    y -= img.height / 2;
+    
+    x /= 1.6;
+    y /= 1.6;    
+    
+    float _x = x;
+    x = x*cos(r) - y*sin(r);
+    y = _x*sin(r) + y*cos(r);
+    
+    x += px;
+    y += py;
+    
+    float[] v = {x, y};
+    return v;
+  }
+  
+  boolean collide()
+  {
+    for(int i = 0; i < 56; i += 2) 
+    {
+      float sk[] = img2screen(Pixlist[i], Pixlist[i+1]);
+      
+      for(Meteor m : mets)
+      {
+        // if(m == null) continue;
+        
+        float s[] = m.screen2img((int)sk[0], (int)sk[1]);
+        if(s[0]-1 <= 0 || s[0]+1 >= m.img.width) return false;
+        if(s[1]-1 <= 0 || s[1]+1 >= m.img.height) return false;
+        
+        if(alpha(m.img.get((int)s[0], (int)s[1])) != 0) 
+        {
+          exit();
+          return true;
+        }
+        m.img.updatePixels();
+      }
+    }
+    return false;
   }
   
   void update() {
@@ -547,9 +598,9 @@ void setup() {
 
   ship = new Ship("ship.png");
   mets.add(new Meteor("img.png"));
-  mets.add(new Meteor("img.png"));
+  //mets.add(new Meteor("img.png"));
   
-  mets.get(0).px -= 100;
+  mets.get(0).px -= 250;
   
   strokeWeight(3);
 }
@@ -567,6 +618,11 @@ void draw() {
     met.draw();
   }
   
+  if(ship.collide())
+  {
+    fill(255);
+    text("AAAAAAAAAAAAAAAAAAS", 100, 100);
+  }
   
   if (Laser > 0) {
     stroke(255, 0, 50, Laser * (float)255);
