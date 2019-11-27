@@ -8,8 +8,6 @@ final int RELOAD = 30;
 final color BColor = color(123,255,123,123);
 final color GColor = color(255,42,203,255);
 
-
-
 class Pixel {
   Pixel(int x, int y) {
     this.x = x;
@@ -19,6 +17,9 @@ class Pixel {
   public
   int x;
   int y;
+  
+  int ox, oy, od;
+  
   boolean active = true;
 }
 
@@ -326,6 +327,18 @@ class Meteor {
     return a != 0 && a != 200;
   }
   
+  void contour_step(int px, int py, int di) {
+    
+    if (havePixel(px, py, di)) {
+      integrate(px, py, di);
+      di = (di - 1) & ~-4; //(DI - 1) % 4
+    } else {
+      px += DX[di];
+      py += DY[di];
+      di = (di + 1) % 4;
+    }
+  
+  }
 
   void contour(int ox, int oy, int oi) {
     
@@ -365,10 +378,8 @@ class Meteor {
   void detect_left(int px, int py) {
     boolean has_left = alpha(img.get(px, py)) == 255;
     
-    if(has_left && !had_left) {
-      //img.set(px,py, color(255,0,0));
+    if(has_left && !had_left)
       left_list.add(new Pixel(px, py));
-    }
     
     had_left = has_left;
   }
@@ -376,14 +387,66 @@ class Meteor {
   void detect_right(int px, int py) {
     boolean has_right = alpha(img.get(px, py)) == 255;
     
-    if(has_right && !had_right) {
-      //img.set(px,py, color(255,0,0));
+    if(has_right && !had_right)
       right_list.add(new Pixel(px, py));
-    }
       
     had_right = has_right;
   }
   
+  void separa_componentes() {
+    
+    left_list.addAll(right_list);
+    
+    for(int i = 0; i < left_list.size(); i++) {
+      Pixel pix = left_list.get(i);
+      
+      if(pix.active) {
+        int ox = -1, oy = -1, oi = -1;
+        
+        for(oi = 0; oi < 4; oi++) {
+          if(alpha(img.get(pix.x - DX[oi], pix.y - DY[oi])) == 0) {
+            ox = pix.x - DX[oi];
+            oy = pix.y - DY[oi];
+            break;
+          }
+        }
+        
+        int sx = ox, sy = oy, di = oi;
+        
+        do {
+          
+          if (havePixel(sx, sy, di)) {
+            for(int j = i + 1; j < left_list.size(); j++) {
+              Pixel pix2 = left_list.get(j);
+              if(pix2.x == sx + DX[di] && pix2.y == sy + DY[di])
+                pix2.active = false;
+            }
+            
+            di = (di - 1) & ~-4;
+          } else {
+            sx += DX[di];
+            sy += DY[di];
+            di = (di + 1) % 4;
+          }
+        } while(sx != ox || sy != oy || di != oi);
+        
+        
+      }
+    }
+    
+    
+    int count = 0;
+    for (Pixel px : left_list) {
+       if (px.active)
+        count++;
+    }
+    
+    println("" + count + " COMPONENTES");
+    
+    //contour(sx, sy, di);
+   
+    
+  }
   
   void limpa(int minx, int maxx, int miny, int maxy) {
     
@@ -478,17 +541,7 @@ class Meteor {
         right_list.remove(0);
     }
       
-    
-    
-    for (Pixel pixel : left_list) {
-      img.set(pixel.x, pixel.y, color(255,0,0));
-    }
-    for (Pixel pixel : right_list) {
-      img.set(pixel.x, pixel.y, color(255,0,0));
-    }
-      
-    // Percorre as bordas
-    
+    separa_componentes();
     
     left_list.clear();
     right_list.clear();
@@ -601,7 +654,7 @@ void setup() {
   mets.add(new Meteor("img.png"));
   //mets.add(new Meteor("img.png"));
   
-  mets.get(0).px -= 250;
+  mets.get(0).px -= 100;
   
   strokeWeight(3);
 }
@@ -615,11 +668,11 @@ void draw() {
   //ship.draw(512, 0);
   
   for (Meteor met : mets) {
-    met.update();
+    //met.update();
     met.draw();
   }
   
-  ship.collide();
+  //ship.collide();
   
   if (Laser > 0) {
     stroke(255, 0, 50, Laser * (float)255);
