@@ -4,7 +4,7 @@
 final int[] DX = {1, 0, -1, 0};
 final int[] DY = {0, -1, 0, 1};
 final int R = 25;
-final int RELOAD = 30;
+final int RELOAD = 0;
 final color BColor = color(123,255,123,123);
 final color GColor = color(255,42,203,255);
 
@@ -168,12 +168,12 @@ class Ship {
     if (KSpace) {
       shoot();
     }
+    final float kx = 0*sqrt(2) * 500 / 8, ky = 0*sqrt(2) * 340 / 8;
+    if (px > 512 + kx) px -= 512 + 2*kx;
+    if (px < -kx) px += 512 + 2*kx;
     
-    if (px > 512) px -= 512;
-    if (px < 0) px += 512;
-    
-    if (py > 512) py -= 512;
-    if (py < 0) py += 512;
+    if (py > 512 + ky) py -= 512 + 2 * ky;
+    if (py < -ky) py += 512 + 2 * ky;
     
     px += vx;
     py += vy;
@@ -189,25 +189,25 @@ class Ship {
     if (key_delay != 0) {
       key_delay--;
     }
-    
-    pushMatrix();
-    
-    translate(px + ox, py + oy);
-    rotate(r);
-    
-    if(KUp) {
-      stroke(255, 100, 0);
-      fill(255, 255, 0);
-      ellipse(0, 15, 10, 30);
-    }
-    
-    imageMode(CENTER);
-    image(img, 0, 0, 500 / 8, 340 / 8);
-    imageMode(CORNER);
-    
-    
-    
-    popMatrix();
+    for(int i = -1; i < 2; i++) for(int j = -1; j < 2; j++)
+    {
+      pushMatrix();
+      
+      translate(px + ox + 512*i, py + oy + 512*j);
+      rotate(r);
+      
+      if(KUp) {
+        stroke(255, 100, 0);
+        fill(255, 255, 0);
+        ellipse(0, 15, 10, 30);
+      }
+      
+      imageMode(CENTER);
+      image(img, 0, 0, 500 / 8, 340 / 8);
+      imageMode(CORNER);
+      
+      popMatrix();
+      }
   }
   
 }
@@ -241,27 +241,41 @@ class Meteor {
   }
   
   void update() {
+    
+    float l = mag(vx, vy);
+    if(l > 1)
+    {
+      vx *= 1 / l;
+      vy *= 1 / l;
+    }
+    if(abs(w) > 0.1) w *= 0.1 / abs(w);
     px += vx;
     py += vy;
     r += w;
     
-    if (px > 512) px -= 512;
-    if (px < 0) px += 512;
     
-    if (py > 512) py -= 512;
-    if (py < 0) py += 512;
+    float k = 256 * sqrt(2) * 0;
+    
+    if (px > 512 + k) px -= 512 + 2*k;
+    if (px < -k) px += 512 + 2*k;
+    
+    if (py > 512 + k) py -= 512 + 2*k;
+    if (py < -k) py += 512 + 2*k;
     
   }
   
   void draw() {
-    pushMatrix();
-    
-    translate(px, py);
-    rotate(r);
-    translate(-CM[0], -CM[1]);
-    image(img, 0, 0);
-    
-    popMatrix();
+    for(int i = -1; i < 2; i++) for(int j = -1; j < 2; j++)
+    {
+      pushMatrix();
+      
+      translate(px + 512 * i, py + 512 * j);
+      rotate(r);
+      translate(-CM[0], -CM[1]);
+      image(img, 0, 0);
+  
+      popMatrix();
+    }
   }
   
   float[] screen2img(float x, float y) {
@@ -711,10 +725,10 @@ void setup() {
   bgimg = loadImage("sky.jpg");
 
   ship = new Ship("ship.png");
-  mets.add(new Meteor("img.png", 100, 100, 0));
+  mets.add(new Meteor("img.png", 200, 200, 0));
   //mets.add(new Meteor("img.png"));
   
-  mets.get(0).px -= 100;
+  //mets.get(0).px -= 100;
   
   strokeWeight(3);
 }
