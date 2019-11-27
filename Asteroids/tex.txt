@@ -1,0 +1,41 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+
+\title{Asteroids - Corpos rígidos}
+\author{Cristhian Grundmann \\ Danilo Lemos Cardoso}
+\date{27 de Novembro de 2019}
+
+\begin{document}
+
+\maketitle
+
+\section{Introdução}
+O trabalho consistem em reproduzir o clássico jogo \textit{Asteroids}, no qual o jogador controla uma nave e deve desviar de asteróides, podendo destruí-los. No clássico os asteróides não são corpos rígidos, apenas se dividem em dois quando atingidos. O trabalho implementa o clássico porém com corpos rígidos.
+
+\section{Variáveis de corpos rígidos}
+Os asteróides e a nave são imagens que o Processing carrega, com transparências.
+Ao carregar a imagem de um asteróide, é achado um pixel de borda, e então é aplicado um algoritmo que percorre pela borda do asteróide, calculando simultaneamente sua massa $m$, centro de massa $cm$ e momento de inércia $I_0$ em relação à origem da imagem, usando o Teorema de Green. Em seguida, usando a fórmula $I = I_{CM} + md^2$, o momento de inércia é corrigido para ser em relação ao centro de massa. Mas para isso, presume-se que o asteróide inicial seja conexo e sem buracos.
+
+$$ m = \iint _{R} {dxdy} =  \frac{1}{2} \oint_{\partial R}{(-y, x) \ ds}$$
+
+$$ cm_x = \frac{1}{m} \iint _{R} {x \ dxdy} =  \frac{1}{2m} \oint_{\partial R}{(0, x^2) \ ds}$$
+$$ cm_y = \frac{1}{m} \iint _{R} {y \ dxdy} =  \frac{1}{2m} \oint_{\partial R}{(-y^2, 0) \ ds}$$
+$$ cm_x = \frac{1}{m} \iint _{R} {x \ dxdy} =  \frac{1}{2m} \oint_{\partial R}{(0, x^2) \ ds}$$
+$$ I_0 = \iint _{R} {(x^2+y^2) \ dxdy} =  \frac{1}{3} \oint_{\partial R}{(-y^3, x^3) \ ds}$$
+$$I_{CM} = I_0 - md^2$$
+
+Na implementação, as integrais de linha são aplicadas a cada segmento pixel da borda.
+
+\section{Tiro}
+A nave atira um laser que cava um pedaço de um asteroide, imprimindo a este uma velocidade angular e linear.
+Quando a imagem se divide em dois ou mais asteroides, eles se separam em imagens diferentes. Para detectar um ponto de contato, é rasterizado uma reta, pixel a pixel, e quando é achado um pixel de asteroide, é chamado uma subrotina que ``come" o asteroide, atualizando variáveis e detectando possíveis novas componentes conexas. O formado da explosão é de uma elipse, com eixo maior paralelo à direção do tiro.
+
+\section{Colisão nave-asteroide}
+A nave possui $26$ pontos que testam colisão com o asteroide. Ao colidir, o jogador perde.
+Foi necessário uma transformação de coordenadas, pois as imagens possuem posição e rotação.
+
+\section{Detecção de componentes conexas}
+O tiro na nave come parte de um asteroide. Ao redor dessa região detecta-se as partes da elipse que faziam parte da borda do asteroide. Um algoritmo que percorre a borda é aplicado a cada um dessas partes, lembrando onde já foi percorrido. Depois da primeira aplicação, se houver uma segunda, essa região está separada da primeira, e é transformada em um asteroide novo, e assim por diante. Caso a massa deste seja pequena o suficiente, ele é descartado.  
+
+\end{document}
