@@ -30,6 +30,7 @@ void clean(PImage img) {
     color c = img.pixels[x + y * img.width];
     //img.pixels[x + y * img.width] = color(255);
     if(alpha(c) != 0) img.pixels[x + y * img.width] |= 0xff000000;
+    if(c == color(1, 2, 3)){ img.pixels[x + y * img.width] = color(0, 0, 0, 0); println("AAAAAAAA");}
   }
   img.updatePixels();
 }
@@ -135,15 +136,17 @@ class Ship {
         // if(m == null) continue;
         
         float s[] = m.screen2img((int)sk[0], (int)sk[1]);
-        if(s[0]-1 <= 0 || s[0]+1 >= m.img.width) return false;
-        if(s[1]-1 <= 0 || s[1]+1 >= m.img.height) return false;
+        if((int)s[0] < 0 || (int)s[0] >= m.img.width) continue;
+        if((int)s[1] < 0 || (int)s[1] >= m.img.height) continue;
         
         if(alpha(m.img.get((int)s[0], (int)s[1])) != 0) 
         {
-          exit();
-          return true;
+          m.img.pixels[(int)s[0] + (int)s[1] * m.img.width] = color(255, 0, 0, 255);
+          m.img.updatePixels();
+          //exit();
+          //return true;
         }
-        m.img.updatePixels();
+        
       }
     }
     return false;
