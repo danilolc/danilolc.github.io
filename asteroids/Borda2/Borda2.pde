@@ -8,6 +8,8 @@ final int RELOAD = 30;
 final color BColor = color(123,255,123,123);
 final color GColor = color(255,42,203,255);
 
+
+
 class Pixel {
   Pixel(int x, int y) {
     this.x = x;
@@ -476,8 +478,7 @@ class Meteor {
         right_list.remove(0);
     }
       
-    println("Left =  " + left_list.size());
-    println("Right = " + right_list.size());
+    
     
     for (Pixel pixel : left_list) {
       img.set(pixel.x, pixel.y, color(255,0,0));
@@ -591,7 +592,7 @@ Ship ship;
 
 void setup() {
   size(512, 512);
-  noSmooth();
+  //noSmooth();
   stroke(255,0,0);
   
   bgimg = loadImage("sky.jpg");
@@ -618,11 +619,7 @@ void draw() {
     met.draw();
   }
   
-  if(ship.collide())
-  {
-    fill(255);
-    text("AAAAAAAAAAAAAAAAAAS", 100, 100);
-  }
+  ship.collide();
   
   if (Laser > 0) {
     stroke(255, 0, 50, Laser * (float)255);
