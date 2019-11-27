@@ -4,7 +4,7 @@
 final int[] DX = {1, 0, -1, 0};
 final int[] DY = {0, -1, 0, 1};
 final int R = 25;
-final int RELOAD = 0;
+final int RELOAD = 30;
 final color BColor = color(123,255,123,123);
 final color GColor = color(255,42,203,255);
 
@@ -55,7 +55,7 @@ class Ship {
   PImage img;
   
   float px = 200, py = 200, r = 0;
-  float vx = 0, vy = 0, w = 0.007;
+  float vx = 0, vy = 0, w = 0;
   boolean up, left, right, bar;
   
    
@@ -469,10 +469,9 @@ class Meteor {
         met.CM[0] /= 2 * met.M;
         met.CM[1] /= 2 * met.M;
         met.I /= 3;
-          
         met.I -= (met.CM[0]*met.CM[0]+met.CM[1]*met.CM[1]) * met.M;
         
-        if (i > 0 && M > 500) {
+        if (i > 0) {
           
           mets.add(met);
           met.img.updatePixels();
@@ -481,12 +480,8 @@ class Meteor {
           met.vy = vy;
           met.r = r;
           
-          met.px -= CM[0];
-          met.py -= CM[1];
           
-          met.px += met.CM[0];
-          met.py += met.CM[1];
-          
+        
           
           sx = pix.ox;
           sy = pix.oy;
@@ -741,7 +736,7 @@ void draw() {
   ship.draw(0, 0);
   
   for (Meteor met : mets) {
-    met.update();
+    //met.update();
     met.draw();
   }
   
