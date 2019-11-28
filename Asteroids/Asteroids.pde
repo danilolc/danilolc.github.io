@@ -736,12 +736,16 @@ void setup() {
   boom = loadImage("boom.png");
 
   ship = new Ship("ship.png");
-  mets.add(new Meteor("img.png"));
+  mets.add(new Meteor("Images/img1.png"));
   //mets.add(new Meteor("img.png"));
   
   mets.get(0).px = 400;
   mets.get(0).py = 200;
   mets.get(0).r = 0.0;
+  
+  mets.get(0).vx = 0.1;
+  mets.get(0).vy = 0.1;
+  mets.get(0).w = 0.01;
   
   strokeWeight(3);
 }
