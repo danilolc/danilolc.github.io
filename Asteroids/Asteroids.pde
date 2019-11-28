@@ -1,4 +1,4 @@
-//  1
+ //  1
 //2 | 0
 //  3
 final int[] DX = {1, 0, -1, 0};
@@ -508,10 +508,10 @@ class Meteor {
         
         //(a,b)(c,d) = ad-bc
         float tor = ((xhit - met.CM[0]) * swhit - (yhit - met.CM[1]) * cwhit) / met.I;
-        met.w += tor * 500;
+        met.w += tor * 700;
         
-        met.vx += cos(met.r + whit) * 500 / met.M;
-        met.vy += sin(met.r + whit) * 500 / met.M;
+        met.vx += cos(met.r + whit) * 700 / met.M;
+        met.vy += sin(met.r + whit) * 700 / met.M;
                
         /*float l = mag(met.vx, met.vy);
         if(l > 1)
@@ -635,7 +635,7 @@ class Meteor {
     int miny = 9999, maxy = -1;
     int minx = 9999, maxx = -1;
     
-    float A = 50, B = 30;
+    float A = 55, B = 20;
     float cw = cos(w);
     float sw = sin(w);
     
@@ -734,7 +734,7 @@ void setup() {
   mets.add(new Meteor("img.png"));
   //mets.add(new Meteor("img.png"));
   
-  mets.get(0).px = 300;
+  mets.get(0).px = 400;
   mets.get(0).py = 200;
   mets.get(0).r = 0.0;
   
@@ -754,6 +754,14 @@ void draw() {
     met.draw();
   }
   
+  
+  for (int i = 0; i < mets.size(); i++) {
+    if (mets.get(i).M < 50) {
+      mets.remove(i);
+      i--;
+    }
+  }
+
   ship.collide();
   
   if (Laser > 0) {
