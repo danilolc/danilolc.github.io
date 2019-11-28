@@ -4,7 +4,7 @@
 final int[] DX = {1, 0, -1, 0};
 final int[] DY = {0, -1, 0, 1};
 final int R = 25;
-final int RELOAD = 30;
+final int RELOAD = 20;
 final color BColor = color(123,255,123,123);
 final color GColor = color(255,42,203,255);
 
@@ -37,7 +37,7 @@ void clean(PImage img) {
   {
     color c = img.get(x, y);
     if(alpha(c) != 0) img.pixels[x + y * img.width] |= 0xff000000;
-    if(c == color(1, 2, 3)){ img.pixels[x + y * img.width] = color(0, 0, 0, 0); println("AAAAAAAA");}
+    if(c == color(1, 2, 3)){ img.pixels[x + y * img.width] = color(0, 0, 0, 0);}
   }
   img.updatePixels();
 }
@@ -147,7 +147,7 @@ class Ship {
         if((int)s[1] < 0 || (int)s[1] >= m.img.height) continue;
         
         if(alpha(m.img.get((int)s[0], (int)s[1])) != 0) 
-          ;//exit();
+          exit();
         
       }
     }
@@ -219,36 +219,21 @@ class Meteor {
   float[] CM = {0, 0};
   long I = 0;
   
-  float px, py, r;
+  float px = 0, py = 0, r = 0;
   float vx = 0, vy = 0, w = 0.0;
   
-  Meteor(String source, float px, float py, float r) {
+  Meteor(String source) {
     img = loadImage(source);
     clean(img);
     findBorder();
-    
-    this.px = px;
-    this.py = py;
-    this.r = r;
   }
   
-  Meteor(int imgx, int imgy, float px, float py, float r) {
+  Meteor(int imgx, int imgy) {
     img = createImage(imgx, imgy, ARGB);
-    
-    this.px = px;
-    this.py = py;
-    this.r = r;
   }
   
   void update() {
     
-    float l = mag(vx, vy);
-    if(l > 1)
-    {
-      vx *= 1 / l;
-      vy *= 1 / l;
-    }
-    if(abs(w) > 0.1) w *= 0.1 / abs(w);
     px += vx;
     py += vy;
     r += w;
@@ -416,6 +401,11 @@ class Meteor {
   
   void separa_componentes() {
     
+    float cmx = CM[0], cmy = CM[1];
+    float pxx = px, pyy = py;    
+    float www = w;
+    float vxx = vx, vyy = vy;
+    
     M = 0;
     CM[0] = 0;
     CM[1] = 0;
@@ -430,7 +420,7 @@ class Meteor {
         
         Meteor met;
         if (i > 0) {
-          met = new Meteor(img.width, img.height, px, py, r);
+          met = new Meteor(img.width, img.height);
         }
         else
           met = this;
@@ -471,17 +461,25 @@ class Meteor {
         met.I /= 3;
         met.I -= (met.CM[0]*met.CM[0]+met.CM[1]*met.CM[1]) * met.M;
         
+        float mx = met.CM[0] - cmx;
+        float my = met.CM[1] - cmy;
+        
+        float _mx = mx;
+        mx = mx * cos(r) - my * sin(r);
+        my = _mx * sin(r) + my * cos(r);
+        
+        met.px = pxx + mx;
+        met.py = pyy + my;
+        met.r = r;
+        
         if (i > 0) {
           
           mets.add(met);
           met.img.updatePixels();
           
-          met.vx = vx;
-          met.vy = vy;
-          met.r = r;
-          
-          
-        
+          met.vx = vxx;
+          met.vy = vyy;
+          met.w = www;
           
           sx = pix.ox;
           sy = pix.oy;
@@ -505,25 +503,25 @@ class Meteor {
           } while(sx != pix.ox || sy != pix.oy || di != pix.od);
           
           
-          
-          
-          
-          
         }
         
         
+        //(a,b)(c,d) = ad-bc
+        float tor = ((xhit - met.CM[0]) * swhit - (yhit - met.CM[1]) * cwhit) / met.I;
+        met.w += tor * 500;
+        
+        met.vx += cos(met.r + whit) * 500 / met.M;
+        met.vy += sin(met.r + whit) * 500 / met.M;
+               
+        /*float l = mag(met.vx, met.vy);
+        if(l > 1)
+        {
+          met.vx *= 1 / l;
+          met.vy *= 1 / l;
+        }
+        if(abs(met.w) > 0.1) met.w *= 0.1 / abs(met.w);*/        
       }
     }
-    
-    
-    int count = 0;
-    for (Pixel px : left_list) {
-       if (px.active)
-        count++;
-    }
-    
-    println("" + count + " COMPONENTES");
-    
   }
   
   void limpa(int minx, int maxx, int miny, int maxy) {
@@ -628,14 +626,25 @@ class Meteor {
     
   }
   
+  int xhit = 0, yhit = 0;
+  float cwhit = 0, swhit = 0, whit = 0;
+  
   void come(int x, int y, float w) {
+    
     
     int miny = 9999, maxy = -1;
     int minx = 9999, maxx = -1;
     
-    float A = 40, B = 20;
+    float A = 50, B = 30;
     float cw = cos(w);
     float sw = sin(w);
+    
+    xhit = x;
+    yhit = y;
+    cwhit = cw;
+    swhit = sw;
+    whit = w;
+    
     
     int lx = -1, ly = -1;
     
@@ -672,6 +681,7 @@ class Meteor {
     }
     
     limpa(minx, maxx, miny, maxy);
+    /*
     
     //(a,b)(c,d) = ad-bc
     float tor = ((x - CM[0]) * sw - (y - CM[1]) * cw) / I;
@@ -680,6 +690,7 @@ class Meteor {
     this.vx += cos(r + w) * 5000 / this.M;
     this.vy += sin(r + w) * 5000 / this.M;
     
+    */
   }
 
   float[] raster(int x, int y, float angle) {
@@ -720,10 +731,12 @@ void setup() {
   bgimg = loadImage("sky.jpg");
 
   ship = new Ship("ship.png");
-  mets.add(new Meteor("img.png", 200, 200, 0));
+  mets.add(new Meteor("img.png"));
   //mets.add(new Meteor("img.png"));
   
-  //mets.get(0).px -= 100;
+  mets.get(0).px = 300;
+  mets.get(0).py = 200;
+  mets.get(0).r = 0.0;
   
   strokeWeight(3);
 }
@@ -736,7 +749,8 @@ void draw() {
   ship.draw(0, 0);
   
   for (Meteor met : mets) {
-    //met.update();
+    if (met.M < 10) continue;
+    met.update();
     met.draw();
   }
   
@@ -752,13 +766,6 @@ void draw() {
     rect(0,0,512,512);
     
     Laser--;
-  }
-  
-  int py = 10;
-  fill(255,255,0);
-  for (Meteor met : mets) {
-    text("" + met.M + " " + met.px + " " + met.py, 10, py);
-    py += 10;
   }
   
   if (KDown) {
