@@ -736,7 +736,9 @@ void setup() {
   boom = loadImage("boom.png");
 
   ship = new Ship("ship.png");
+  
   mets.add(new Meteor("Images/img1.png"));
+  
   //mets.add(new Meteor("img.png"));
   
   mets.get(0).px = 400;
