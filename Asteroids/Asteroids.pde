@@ -1,3 +1,5 @@
+final boolean Vet = false;
+
 final int[] DX = {1, 0, -1, 0};
 final int[] DY = {0, -1, 0, 1};
 final int R = 25;
@@ -54,7 +56,7 @@ final int[] Pixlist = {40, 64, 30, 60, 18, 62, 14, 66, 12, 54, 10, 44, 12, 30,
 class Ship {
   PImage img;
   
-  float px = 200, py = 200, r = 0;
+  float px = 512/2, py = 470, r = 0;
   float vx = 0, vy = 0, w = 0;
   boolean up, left, right, bar;
   
@@ -737,8 +739,21 @@ void setup() {
 
   ship = new Ship("ship.png");
   
-  mets.add(new Meteor("Images/img1.png"));
-  
+  if (Vet) {
+    mets.add(new Meteor("Images/img3.png"));
+    mets.add(new Meteor("Images/img5.png"));
+    mets.get(1).px = 512-400;
+    mets.get(1).py = 200;
+    mets.get(1).r = 0.0;
+    
+    mets.get(1).vx = -0.1;
+    mets.get(1).vy = 0.1;
+    mets.get(1).w = -0.01;
+  }
+  else {
+    mets.add(new Meteor("Images/img1.png"));
+      
+  }
   //mets.add(new Meteor("img.png"));
   
   mets.get(0).px = 400;
