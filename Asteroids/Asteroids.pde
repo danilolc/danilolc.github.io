@@ -1,12 +1,12 @@
- //  1
-//2 | 0
-//  3
 final int[] DX = {1, 0, -1, 0};
 final int[] DY = {0, -1, 0, 1};
 final int R = 25;
-final int RELOAD = 20;
+final int RELOAD = 25;
 final color BColor = color(123,255,123,123);
 final color GColor = color(255,42,203,255);
+PImage boom;
+int boomf = -1;
+float boomt = 0;
 
 class Pixel {
   Pixel(int x, int y, PImage img) {
@@ -100,9 +100,9 @@ class Ship {
     LaserY = sy;
     
     if (target != null && e != null) {
+      float[] pos = target.img2screen(e[0], e[1]);
       target.come((int)e[0], (int)e[1], (r - HALF_PI) - target.r);
       
-      float[] pos = target.img2screen(e[0], e[1]);
       LaserA = pos[0];
       LaserB = pos[1];
     }
@@ -146,9 +146,11 @@ class Ship {
         if((int)s[0] < 0 || (int)s[0] >= m.img.width) continue;
         if((int)s[1] < 0 || (int)s[1] >= m.img.height) continue;
         
-        if(alpha(m.img.get((int)s[0], (int)s[1])) != 0) 
-          exit();
-        
+        if(alpha(m.img.get((int)s[0], (int)s[1])) != 0 && boomf == -1)
+        {
+          boomf = 0;
+          boomt = millis();
+        }
       }
     }
     return false;
@@ -204,7 +206,7 @@ class Ship {
       
       imageMode(CENTER);
       image(img, 0, 0, 500 / 8, 340 / 8);
-      imageMode(CORNER);
+      
       
       popMatrix();
       }
@@ -257,6 +259,7 @@ class Meteor {
       translate(px + 512 * i, py + 512 * j);
       rotate(r);
       translate(-CM[0], -CM[1]);
+      imageMode(CORNER);
       image(img, 0, 0);
   
       popMatrix();
@@ -508,10 +511,10 @@ class Meteor {
         
         //(a,b)(c,d) = ad-bc
         float tor = ((xhit - met.CM[0]) * swhit - (yhit - met.CM[1]) * cwhit) / met.I;
-        met.w += tor * 700;
+        met.w += tor * 1000;
         
-        met.vx += cos(met.r + whit) * 700 / met.M;
-        met.vy += sin(met.r + whit) * 700 / met.M;
+        met.vx += cos(met.r + whit) * 1000 / met.M;
+        met.vy += sin(met.r + whit) * 1000 / met.M;
                
         /*float l = mag(met.vx, met.vy);
         if(l > 1)
@@ -729,6 +732,7 @@ void setup() {
   stroke(255,0,0);
   
   bgimg = loadImage("sky.jpg");
+  boom = loadImage("boom.png");
 
   ship = new Ship("ship.png");
   mets.add(new Meteor("img.png"));
@@ -745,18 +749,44 @@ void draw() {
   fill(0);
   background(bgimg);
   
-  ship.update();
-  ship.draw(0, 0);
+  if(boomf < 5)
+  {
+    ship.update();
+    ship.draw(0, 0);
+  }
   
   for (Meteor met : mets) {
-    if (met.M < 10) continue;
     met.update();
     met.draw();
   }
   
+  int py = 10;
+  fill(255,255,0);
+  for (Meteor met : mets) {
+    text("" + met.M + " " + String.format("%.2f", met.px) + " " + String.format("%.2f", met.py), 10, py);
+    py += 10;
+  }
+  
+  if(boomf != -1)
+  {
+    int i = boomf % 4, j = boomf / 4;
+    
+    imageMode(CORNER);
+    clip(ship.px-64, ship.py-64, +128, +128);
+    
+    image(boom, ship.px - 64 - 128 * i, ship.py - 64 - 128 * j);
+    noClip();
+    if(millis() - boomt > 100)
+    {
+      boomt = millis();
+      boomf++;
+    }
+    if(boomf > 31) exit();
+  }
+  
   
   for (int i = 0; i < mets.size(); i++) {
-    if (mets.get(i).M < 50) {
+    if (mets.get(i).M < 250) {
       mets.remove(i);
       i--;
     }
