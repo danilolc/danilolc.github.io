@@ -362,7 +362,7 @@ class Meteor {
         M += val[0];
         CM[di % 2] += val[1];
         I += val[2];
-        
+        //img.set(px + DX[di], py + DY[di], color(100)); //3#        
         di = (di - 1) & ~-4; //(DI - 1) % 4
       } else {
         px += DX[di];
@@ -444,7 +444,8 @@ class Meteor {
                 met.img.set(j, sy, img.get(j,sy));
               }
             }
-        
+            //met.img.set(sx + DX[di], sy + DY[di], color(100)); //3#
+            
             int[] val = integrate(sx, sy, di);
             met.M += val[0];
             met.CM[di % 2] += val[1];
@@ -760,12 +761,13 @@ void draw() {
     met.draw();
   }
   
+  /*
   int py = 10;
   fill(255,255,0);
   for (Meteor met : mets) {
     text("" + met.M + " " + String.format("%.2f", met.px) + " " + String.format("%.2f", met.py), 10, py);
     py += 10;
-  }
+  }*/
   
   if(boomf != -1)
   {
@@ -805,12 +807,7 @@ void draw() {
     
     Laser--;
   }
-  
-  if (KDown) {
-    background(20, 50, 90);
-    image(mets.get(0).img, 0, 0, 512, 512);
-  }
-  
+   
 }
 
 boolean KLeft = false, KUp = false, KRight = false, KDown = false, KSpace = false;
