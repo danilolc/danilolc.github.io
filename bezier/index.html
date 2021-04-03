@@ -41,17 +41,14 @@
 <br>
 <div class="bd">
 <div class="sl">
-Op1:
-<input type="number" name="quantity" value=9.8 step=0.1 onchange="Grav = float(this.value)">
+<button onclick="acrescentar_ponto()">Acrescentar Ponto</button>
+<button onclick="deletar_ponto()">Deletar Ponto</button>
 <br>
-Op2:
-<input type="number" name="quantity" value=9.8 step=0.1 onchange="Grav = float(this.value)">
+Subdivisões:
+<input type="number" name="quantity" value=100 step=1 onchange="subdivisoes = this.value; atualiza_tela = true;">
 <br>
-Op3:
-<input type="number" name="quantity" value=9.8 step=0.1 onchange="Grav = float(this.value)">
-<br>
-Op4:
-<input type="number" name="quantity" value=9.8 step=0.1 onchange="Grav = float(this.value)">
+Casco convexo:
+<input type="checkbox" onchange="desenha_hull = this.checked; atualiza_tela = true;">
 </div>
 
 

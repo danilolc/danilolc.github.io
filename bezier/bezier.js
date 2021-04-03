@@ -9,9 +9,17 @@ const ScreenY = 480;
 var drag = false;
 var selected = 1;
 
-var desenha_hull = true;
+var desenha_hull = false;
 
 var atualiza_tela = true;
+
+var subdivisoes = 100;
+
+const add = (p1, p2) => [p1[0] + p2[0], p1[1] + p2[1]]
+const sub = (p1, p2) => [p1[0] - p2[0], p1[1] - p2[1]]
+const mult = (k, p) => [k*p[0], k*p[1]]
+const vecp = (v1, v2) => v1[0]*v2[1] - v1[1]*v2[0]
+const dotp = (v1, v2) => v1[0]*v2[0] + v1[1]*v2[1]
 
 function product_Range(a, b) {
 
@@ -67,14 +75,10 @@ function convex_hull(_points) {
             if (l < 2)
                 break
 
-            var L1 = L[l-1]
-            var L2 = L[l-2]
-            var P1 = P[i]
+            var v1 = sub(L[l-2], L[l-1])
+            var v2 = sub(P[i],   L[l-1])
 
-            var v1 = [L2[0] - L1[0], L2[1] - L1[1]]
-            var v2 = [P1[0] - L1[0], P1[1] - L1[1]]
-
-            if (v1[0]*v2[1] - v1[1]*v2[0] < 0)
+            if (vecp(v1, v2) < 0)
                 break;
 
             L.pop();
@@ -89,17 +93,16 @@ function convex_hull(_points) {
 
     for (var i = n-1; i >= 0; i--) {
 
-        while (U.length >= 2) {
+        while (1) {
 
             var l = U.length;
-            var U1 = U[l-1]
-            var U2 = U[l-2]
-            var P1 = P[i]
+            if (l < 2)
+                break
 
-            var v1 = [U2[0] - U1[0], U2[1] - U1[1]]
-            var v2 = [P1[0] - U1[0], P1[1] - U1[1]]
+            var v1 = sub(U[l-2], U[l-1])
+            var v2 = sub(P[i],   U[l-1])
 
-            if (v1[0]*v2[1] - v1[1]*v2[0] < 0)
+            if (vecp(v1, v2) < 0)
                 break;
 
             U.pop();
@@ -119,17 +122,32 @@ function convex_hull(_points) {
 var lista_focos = [
 
     [50, 202],
-    [110, 320],
-    [320, 220],
-    [480, 120],
-    [640, 480],
-    [630, 480],
-    [620, 480],
-    [610, 480],
-    [600, 480],
-    [590, 480],
+    [73, 341],
+    [242, 451],
+    [553, 357],
+    [556, 119],
+    [242, 51],
 
 ];
+
+function acrescentar_ponto() {
+
+    var n = lista_focos.length - 1
+    B = lista_focos
+    C = Array(n+2)
+    
+    C[0] = B[0]
+    C[n+1] = B[n]
+    for (var i = 1; i <= n; i++) {
+        var a = i / (n+1)
+        C[i] = add(mult(1-a, B[i]), mult(a, B[i-1]))
+    }
+
+    lista_focos = C;
+    atualiza_tela = true;
+
+}
+
 
 function draw_square(x, y, rad) {
 
@@ -191,6 +209,7 @@ function desenha_curva(resolucao) {
 
     do { // Desenha linhas de p0 até p1
 
+        if (t > 1) t = 1;
         var p1 = f(t)
         line(p0[0], p0[1], p1[0], p1[1]);
         p0 = p1; // Salva o valor de f(t) para a próxima iteração
@@ -229,7 +248,7 @@ function draw() {
         }
 
 
-        desenha_curva(50)
+        desenha_curva(subdivisoes)
         lista_focos.map(desenha_focos)
 
 
@@ -239,22 +258,31 @@ function draw() {
 
 }
 
+function deletar_ponto() {
+
+    if (lista_focos.length > 2) {
+
+        lista_focos.splice(selected, 1);
+
+        if (selected >= lista_focos.length)
+            selected = lista_focos.length - 1;
+
+        atualiza_tela = true;
+
+    }
+
+}
+
 function keyPressed() {
-    if (keyCode === DELETE) {
 
-        if (lista_focos.length > 2) {
+    if (keyCode === DELETE) deletar_ponto()
 
-            lista_focos.splice(selected, 1);
-            atualiza_tela = true;
-
-        }
-    } 
 }
 
 
 function mousePressed(event) {
     
-    const DIST = 9;
+    const DIST = 15;
 
     lista_focos.map((p, i) => {
 
