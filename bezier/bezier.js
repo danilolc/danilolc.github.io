@@ -9,6 +9,8 @@ const ScreenY = 480;
 var drag = false;
 var selected = 1;
 
+var desenha_hull = true;
+
 var atualiza_tela = true;
 
 function product_Range(a, b) {
@@ -39,6 +41,80 @@ function comb(n, r) {
 
 }
 
+//https://en.m.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
+function convex_hull(_points) {
+
+    const compare = (p1, p2) => {
+    
+        if (p1[0] < p2[0]) return true;
+        else if (p1[0] > p2[0]) return false;
+        return p1[1] < p2[1];
+
+    } 
+
+    var P = _points.slice()
+    var L = []
+    var U = []
+    var n = P.length
+
+    P.sort(compare)
+    
+    for (var i = 0; i < n; i++) {
+
+        while (1) {
+
+            var l = L.length;
+            if (l < 2)
+                break
+
+            var L1 = L[l-1]
+            var L2 = L[l-2]
+            var P1 = P[i]
+
+            var v1 = [L2[0] - L1[0], L2[1] - L1[1]]
+            var v2 = [P1[0] - L1[0], P1[1] - L1[1]]
+
+            if (v1[0]*v2[1] - v1[1]*v2[0] < 0)
+                break;
+
+            L.pop();
+
+        }
+        
+        L.push(P[i])
+
+    }
+
+    L.pop();
+
+    for (var i = n-1; i >= 0; i--) {
+
+        while (U.length >= 2) {
+
+            var l = U.length;
+            var U1 = U[l-1]
+            var U2 = U[l-2]
+            var P1 = P[i]
+
+            var v1 = [U2[0] - U1[0], U2[1] - U1[1]]
+            var v2 = [P1[0] - U1[0], P1[1] - U1[1]]
+
+            if (v1[0]*v2[1] - v1[1]*v2[0] < 0)
+                break;
+
+            U.pop();
+
+        }
+        
+        U.push(P[i])
+
+    }
+
+    U.pop();
+
+    return L.concat(U);
+}
+
 
 var lista_focos = [
 
@@ -47,6 +123,11 @@ var lista_focos = [
     [320, 220],
     [480, 120],
     [640, 480],
+    [630, 480],
+    [620, 480],
+    [610, 480],
+    [600, 480],
+    [590, 480],
 
 ];
 
@@ -132,8 +213,21 @@ function draw() {
 	
     if (atualiza_tela) {
         
+        noStroke();
         fill(color(250,250,250))
         rect(0, 0, ScreenX, ScreenY);
+
+        if (desenha_hull) {
+    
+            var hull = convex_hull(lista_focos);
+
+            fill(color(230,230,230))
+            beginShape();
+            hull.map(p => vertex(p[0], p[1]))
+            endShape(CLOSE);
+
+        }
+
 
         desenha_curva(50)
         lista_focos.map(desenha_focos)
