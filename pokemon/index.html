@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<head>
+    <title>PokeData</title>
+    <meta charset="UTF-8">
+
+    <script type="text/javascript" src="pokedex.js"></script>
+    <script>
+        const onClick = () => {
+
+            const number = Number(document.getElementById("number").value) - 1;
+
+            if (number > 809 || number < 0) return;
+            document.getElementById("name").innerHTML = pokeData[number].name.english;
+            document.getElementById("type").innerHTML = pokeData[number].type.join(" ");
+
+        }
+    </script>
+</head>
+<body>
+
+    <input id="number"></input>
+    <button onclick="onClick()">Send</button>
+    <br>
+
+    <h1 id="name"></h1>
+    <label id="type"></label>
+
+</body>
