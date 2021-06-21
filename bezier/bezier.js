@@ -17,7 +17,7 @@ const LISTA_FOCOS_INICIAL = [
 
 ];
 
-var lista_focos = LISTA_FOCOS_INICIAL.slice().map(x => x.slice())
+var lista_focos = LISTA_FOCOS_INICIAL.map(x => x.slice())
 
 var drag = false;
 var selected = 1;

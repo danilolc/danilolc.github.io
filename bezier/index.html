@@ -46,12 +46,11 @@
 <br>
 <div class="bd">
 <div class="sl">
-<button onclick="lista_focos = LISTA_FOCOS_INICIAL.slice(); atualiza_tela = true;">Resetar</button>
+<button onclick="lista_focos = LISTA_FOCOS_INICIAL.map(x => x.slice()); atualiza_tela = true;">Resetar</button>
 <br>
 <button onclick="acrescentar_ponto()">Acrescentar Ponto</button>
 <button onclick="deletar_ponto()">Deletar Ponto</button>
 <br>
-<input type="radio" id="male" name="gender" value="female" oninput="draw_2=true; atualiza_tela = true;">
 Epsilon:
 <input type="number" name="quantity" value=1 step=0.01 onchange="epsilon = this.value; atualiza_tela = true;">
 <br>
