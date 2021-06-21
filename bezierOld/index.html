@@ -1,0 +1,78 @@
+<html>
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bézier</title>
+<script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.js" ></script>
+<script language="javascript" type="text/javascript" src="./bezier.js"></script>
+
+<style> 
+	html {
+		display: table;
+		margin: auto;
+	}
+	.bd {
+        display: flex;
+        flex-flow: row-reverse;
+	}
+	input, select {
+	}
+	.sl {
+		justify-content: center;
+		border-style: solid;
+		border-width: 1px;
+        padding: 4px;
+        width: 400px;
+    }
+	canvas { 
+		border-style: solid;	
+		border-width: 1px;
+		margin-right: 20;
+    }
+    br {
+            display: block;
+            margin-bottom: 1em;
+    }
+</style>
+
+</head>
+
+<body>
+
+<center>
+<h1>The Bézier</h1>
+</center>
+<br>
+<div class="bd">
+<div class="sl">
+<button onclick="lista_focos = LISTA_FOCOS_INICIAL.slice(); atualiza_tela = true;">Resetar</button>
+<br>
+<button onclick="acrescentar_ponto()">Acrescentar Ponto</button>
+<button onclick="deletar_ponto()">Deletar Ponto</button>
+<br>
+<input type="radio" id="male" name="gender" value="male" checked oninput="draw_2=false; atualiza_tela = true;">
+Subdivisões:
+<input type="number" name="quantity" value=100 step=1 onchange="subdivisoes = this.value; atualiza_tela = true;">
+<br>
+<input type="radio" id="male" name="gender" value="female" oninput="draw_2=true; atualiza_tela = true;">
+Epsilon:
+<input type="number" name="quantity" value=1 step=0.01 onchange="epsilon = this.value; atualiza_tela = true;">
+<br>
+Casco convexo:
+<input type="checkbox" oninput="desenha_hull = this.checked; atualiza_tela = true;">
+<br>
+Casteljau:
+<input type="checkbox" onchange="casteljau_point = this.checked; atualiza_tela = true;">
+<input type="range" min="0" max="100" value="50" class="slider" oninput="document.getElementById('t').innerHTML = 't = ' + str(this.value / 100); casteljau_t = this.value / 100; atualiza_tela = true;">
+<span id="t">t = 0.50</span>
+<br>
+<button onclick="corta_em_t(); atualiza_tela = true;">Cortar curva</button>
+</div>
+
+
+<div id="canvasForHTML"></div>
+</div>
+
+</body>
+</html>
