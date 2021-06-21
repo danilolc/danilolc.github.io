@@ -5,18 +5,19 @@
 const ScreenX = 640;
 const ScreenY = 480;
 
+// [X, Y, W]
 const LISTA_FOCOS_INICIAL = [
 
-    [50, 202],
-    [73, 341],
-    [242, 451],
-    [553, 357],
-    [556, 119],
-    [242, 51],
+    [50,  202, 1],
+    [73,  341, 1],
+    [242, 451, 1],
+    [553, 357, 1],
+    [556, 119, 1],
+    [242, 51,  1],
 
 ];
 
-var lista_focos = LISTA_FOCOS_INICIAL.slice()
+var lista_focos = LISTA_FOCOS_INICIAL.slice().map(x => x.slice())
 
 var drag = false;
 var selected = 1;
@@ -27,10 +28,7 @@ var casteljau_t = 0.5;
 
 var atualiza_tela = true;
 
-var subdivisoes = 100;
 var epsilon = 1;
-
-var draw_2 = false;
 
 // Operações com pontos e vetores
 const add = (p1, p2) => [p1[0] + p2[0], p1[1] + p2[1]]
@@ -38,6 +36,13 @@ const sub = (p1, p2) => [p1[0] - p2[0], p1[1] - p2[1]]
 const mult = (k, p) => [k*p[0], k*p[1]]
 const vecp = (v1, v2) => v1[0]*v2[1] - v1[1]*v2[0]
 const dotp = (v1, v2) => v1[0]*v2[0] + v1[1]*v2[1]
+
+// Operações com pontos e vetores 3d
+const add3 = (p1, p2) => [p1[0] + p2[0], p1[1] + p2[1], p1[2] + p2[2]]
+const sub3 = (p1, p2) => [p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]]
+const mult3 = (k, p) => [k*p[0], k*p[1], k*p[2]]
+const vecp3 = (v1, v2) => [ v1[1]*v2[2] - v1[2]*v2[1], v1[2]*v2[0] - v1[0]*v2[2], v1[0]*v2[1] - v1[1]*v2[0] ]
+const dotp3 = (v1, v2) => v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]
 
 // a! / b!
 function product_Range(a, b) {
@@ -143,48 +148,74 @@ function convex_hull(_points) {
 function acrescentar_ponto() {
 
     var n = lista_focos.length - 1
-    B = lista_focos
+    B = lista_focos.map(p => [p[0] * p[2], p[1] * p[2], p[2]])
     C = Array(n+2)
     
     C[0] = B[0]
     C[n+1] = B[n]
     for (var i = 1; i <= n; i++) {
         var a = i / (n+1)
-        C[i] = add(mult(1-a, B[i]), mult(a, B[i-1]))
+        C[i] = add3(mult3(1-a, B[i]), mult3(a, B[i-1]))
     }
 
-    lista_focos = C;
+    lista_focos = C.map(p => [p[0] / p[2], p[1] / p[2], p[2]]);
+    set_weight(lista_focos[selected][2])
     atualiza_tela = true;
 
 }
 
-function casteljau(lista, t, bleft, bright) { // Função recursiva que diminui o tamanho da lista até sobrar um ponto
+function casteljau(_lista, t, bleft, bright) { // Função recursiva que diminui o tamanho da lista até sobrar um ponto
 
-    const len = lista.length;
+    let lista = _lista.map(p => [p[0] * p[2], p[1] * p[2], p[2]])
+    let len = lista.length;
 
-    //Vai salvando os pontos de Bleft e Bright em seus vetores
+    while (1) {
+
+        //Vai salvando os pontos de Bleft e Bright em seus vetores
+        if (bleft != undefined)
+            bleft.push(lista[0].slice())
+        if (bright != undefined)
+            bright.push(lista[len-1].slice())
+
+        if (len <= 1)
+            break;
+
+        var lista2 = []
+        for (var i = 0; i < len - 1; i++) {
+            lista2.push(add3(mult3(1-t, lista[i]), mult3(t, lista[i+1])))
+        }
+
+        lista = lista2;
+        len -= 1;
+
+    }
+
+    const trans = l => {
+        for(let i = 0; i < l.length; i++) {
+            l[i][0] /= l[i][2];
+            l[i][1] /= l[i][2];
+        }
+    }
+
     if (bleft != undefined)
-        bleft.push(lista[0])
+        trans(bleft)
     if (bright != undefined)
-        bright.push(lista[len-1])
-    
-    if (len == 1)
-        return lista[0]
+        trans(bright)
+    trans(lista)
 
-    var lista2 = []
-    for (var i = 0; i < len - 1; i++)
-        lista2.push(add(mult(1-t, lista[i]), mult(t, lista[i+1])))
-
-    return casteljau(lista2, t, bleft, bright)
+    return lista[0];
 
 }
 
 function corta_em_t() {
 
     var bleft = []
+    //var weighted_list = lista_focos.map(p => [p[0] * p[2], p[1] * p[2], p[2]])
     casteljau(lista_focos, casteljau_t, bleft)
 
     lista_focos = bleft
+    
+    set_weight(lista_focos[selected][2])
     atualiza_tela = true;
 
 }
@@ -211,6 +242,7 @@ function desenha_foco(p, i) {
 
 }
 
+/*
 function desenha_curva1(lista, resolucao) {
 
     const f = (t) => { // Define o f(t) da curva
@@ -257,7 +289,7 @@ function desenha_curva1(lista, resolucao) {
     } while (t < 1 + dist)
 
 }
-
+*/
 
 /*function quase_reta_fast(lista, eps) {
 
@@ -289,6 +321,14 @@ function desenha_curva1(lista, resolucao) {
 
 }*/
 
+function set_weight(w) {
+
+    document.getElementById('w').innerHTML = 'w = ' + str(floor(w*100)/100);
+    lista_focos[selected][2] = w;
+
+    document.getElementById('iw').value = w*100;
+
+}
 
 function quase_reta(lista, eps) {
 
@@ -347,6 +387,7 @@ function desenha_curva2(lista, eps) {
 
     var bleft = []
     var bright = []
+    //var weighted_list = lista.map(p => [p[0] * p[2], p[1] * p[2], p[2]])
     casteljau(lista, 0.5, bleft, bright)
 
     desenha_curva2(bleft, eps)
@@ -360,6 +401,8 @@ function setup() {
 
     var canvas = createCanvas(ScreenX, ScreenY);
     canvas.parent('canvasForHTML');
+
+    set_weight(lista_focos[selected][2])
 
 }
 
@@ -384,22 +427,14 @@ function draw() {
         }
 
         strokeWeight(1.5);
-        if(draw_2) {
 
-            if (quase_reta(lista_focos, epsilon))
-                stroke(color(100,200,100));
-            else
-                stroke(color(255,200,100));
-            
-            desenha_curva2(lista_focos, epsilon)
+        if (quase_reta(lista_focos, epsilon))
+            stroke(color(100,200,100));
+        else
+            stroke(color(255,200,100));
+        
+        desenha_curva2(lista_focos, epsilon)
 
-        } else {
-
-            stroke(color(255,100,255));
-            
-            desenha_curva1(lista_focos, subdivisoes)
-
-        }
 
         lista_focos.map(desenha_foco)
 
@@ -450,6 +485,8 @@ function mousePressed(event) {
         if (abs(mouseX - p[0]) < 7 && abs(mouseY - p[1]) < 7) {
 
             selected = i;
+            set_weight(lista_focos[selected][2])
+
             drag = true;
             atualiza_tela = true;
 
@@ -481,7 +518,10 @@ function mouseDragged() {
         if (my < 0) my = 0;
         if (my > ScreenY) my = ScreenY;
 
-        lista_focos[selected] = [mx, my];
+        //var weight = lista_focos[selected][2]
+
+        lista_focos[selected][0] = mx;
+        lista_focos[selected][1] = my;
 
         atualiza_tela = true;
 
