@@ -463,6 +463,8 @@ function deletar_ponto() {
         if (selected >= lista_focos.length)
             selected = lista_focos.length - 1;
 
+        set_weight(lista_focos[selected][2])
+
         atualiza_tela = true;
 
     }
