@@ -1,21 +1,113 @@
 //############################
 //Processing Bezier
 //############################
-const SSize = 600;
-let Scale = 20;
+const P = 97;
+const SSize = P*8;
 
-let atualiza_tela = true;
+const mod = (x, n) => ((x % n) + n) % n;
 
-let points = [[0,0], [100,100], [-100,150]]
+// y^2 = x^3 + ax + b
+const A = -1;
+const B = 1;
 
-let dragPoint = false;
-let selected = -1;
-let trash = false;
+let P1 = [-1, -1];
+let P2 = [-1, -1];
+let P3 = [-1, -1];
 
-// X button
-const XX = -SSize / 2 + 50;
-const XY = SSize / 2 - 50;
-const XR = 10
+// a^e
+function pow2(a, e) {
+
+    let r = 1;
+    let binStr = e.toString(2);
+
+    for (let i = binStr.length - 1; i >= 0; i--) {
+
+        if(binStr[i] == '1') {
+            r = mod(r*a, P);
+        }
+
+        a = mod(a*a, P);
+
+    }
+
+    return r;
+
+}
+
+// a/b mod P
+function divide(a, b) {
+
+    if (b == 0) {
+        console.log("Division by 0")
+        return a/0;
+    }
+
+    return mod(a * pow2(b, P-2), P)
+
+}
+
+// P + P
+function double(p) {
+
+    if(p[1] == 0) return [-1, -1];
+
+    let l = divide(3*p[0]*p[0] + A, 2*p[1]);
+
+    let x = mod(l*l - 2*p[0], P);
+    let y = mod(l*(p[0] - x) - p[1], P);
+
+    return [x, y];
+
+}
+
+// p1 + p2
+function oper(p1, p2) {
+
+    // O + p2 = p2
+    if (p1[0] == -1) return p2;
+
+    // p1 + O = p1
+    if (p1[0] == -1) return p1;
+
+    if (p1[0] == p2[0]) {
+        
+        if (p1[1] == p2[1]) return double(p1);
+        else return [-1, -1]
+
+    }
+
+    // (x,y) + (a,b)
+    let l = divide(p2[1]-p1[1], p2[0]-p1[0]);
+
+    let x = mod(l*l - p1[0] - p2[0], P);
+    let y = mod(l*(p1[0] - x) - p1[1], P);
+
+    return [x, y];
+
+}
+
+// k*P
+function multp(k, p) {
+
+    let r = [-1, -1];
+
+    let binStr = k.toString(2);
+
+    for (let i = binStr.length - 1; i >= 0; i--) {
+
+        if(binStr[i] == '1') {
+            r = oper(r, p);
+        }
+        
+        p = double(p);
+
+    }
+
+    return r;
+
+}
+
+const isOnCurve = (x, y) => pow2(y, 2) == mod(pow2(x, 3) + A*x + B, P);
 
 function setup() {
 
@@ -25,299 +117,123 @@ function setup() {
 
 }
 
+function squa(x, y) {
+
+    if (x == P1[0] && y == P1[1])
+        fill(200, 0, 0);
+    else if (x == P2[0] && y == P2[1])
+        fill(0, 180, 0);
+    else if (x == P3[0] && y == P3[1])
+        fill(0, 0, 200);
+    else
+        fill(51);
+
+    square(x*SSize / P, y*SSize / P, SSize / P)
+
+}
+
+function drawline(p1, p2) {
+
+    let a = SSize / P;
+    let b = a / 2;
+
+    stroke(50)
+    line(p1[0]*a+b, p1[1]*a+b, p2[0]*a+b, p2[1]*a+b)
+
+
+}
+
+
+let drawn = false;
+
 // Main Loop
 function draw() {
 
-    Scale /= 1.004;
-    atualiza_tela = true
-	
-    if (atualiza_tela) {
+    if (!drawn) {
 
         background(250);
-        
-        translate(SSize / 2, SSize / 2)
-        scale(1,-1)
 
-        strokeWeight(0.3)
-        stroke(0)
-        
-        // axis
-        line(-SSize,0,SSize,0)
-        line(0,-SSize,0,SSize)
+        translate(0, SSize);
+        scale(1, -1);
 
-        // axis marks
-        for(let i = -SSize; i <= SSize; i += SSize / 20) {
-            line(-4,i,4,i)
-            line(i,-4,i,4)
+        //line(0.1, 0.1, 0.9, 0.9);
+
+        strokeWeight(1);
+        stroke(220)
+        for(let i = 0; i < P; i++) {
+
+            line(SSize * i / P, 0, SSize * i / P, SSize);
+            line(0, SSize * i / P, SSize, SSize * i / P);
+
         }
 
-        // delete button
-        trash? stroke(255,0,0) : stroke(200);
-        strokeWeight(2)
-        circle(XX, XY, XR * 4)
-        strokeWeight(6)
-        line(XX - XR, XY - XR, XX + XR, XY + XR);
-        line(XX + XR, XY - XR, XX - XR, XY + XR);
+        noStroke();
 
-        // poly
-        strokeWeight(1.7)
-        stroke(0)
+        for(let x = 0; x < P; x++) {
+            for(let y = 0; y < P; y++) {
 
-        let roots = Roots()
-
-        let lp = 0;
-        let a = points[1][0];
-        // Usa as raízas para saber o domínio da função
-        if (roots.length < 3)
-            for(let i = Scale*roots[0]; i <= SSize + 1; i++) {
-
-                let x = i / Scale;
-                let px = Scale*p(x);
-
-                line(i-1, lp, i, px);
-                line(i-1, -lp, i, -px);
-
-                lp = px;
-
-                // A linha só sobe a partir daqui
-                if ((3*x*x > -a && x > 0) || (a > 0)) {
-                    // Se saiu da tela
-                    if (2 * px > SSize) break;
-                }
+                if (isOnCurve(x, y))
+                    squa(x, y);
 
             }
-        // Com 3 raízes são duas curvas 
-        else {
-
-            // Curva 1
-            for(let i = Scale*roots[0]; i <= Scale*roots[1] + 1; i++) {
-
-                let x = i / Scale;
-                let px = Scale*p(x);
-
-                line(i-1, lp, i, px);
-                line(i-1, -lp, i, -px);
-
-                lp = px;
-
-            }
-
-            // Curva 2
-            for(let i = Scale*roots[2]; i <= SSize + 1; i++) {
-
-                let x = i / Scale;
-                let px = Scale*p(x);
-
-                line(i-1, lp, i, px);
-                line(i-1, -lp, i, -px);
-
-                lp = px;
-
-                // A segunda curva só sobe
-                if (px > SSize) break;
-
-            }
-
         }
 
+        if (point_selected)
+            drawline(P1, P2);
 
-        /*let lp = 0;
-        for(let i = -SSize; i <= SSize; i++) {
-
-            let x = i / Scale;
-            let px = Scale*p(x);
-
-            line(i-1, lp, i, px);
-            line(i-1, -lp, i, -px);
-
-            lp = px;
-
-        }*/
-
-        // points
-        strokeWeight(10)
-        if (a < 0) {
-
-            let x = sqrt(-a/3);
-            point(Scale*x, Scale*p(x));
-            point(Scale*x, -Scale*p(x));
-
-        }
-
-        /*for (let x of roots)
-            point(Scale*x, 0)*/
-
-        strokeWeight(5)
-        for(let i = 0; i < points.length; i++) {
-            
-            (selected == i) ? stroke(0,0,255) : stroke(255,0,0);
-            point(points[i][0], points[i][1])
-
-        }
-        
-        atualiza_tela = false;
-
+        drawn = true;
     }
 
 }
 
-function p(x) {
+let pressing = false;
+let point_selected = false;
 
-    let a = points[1][0];
-    let b = points[1][1];
+function mousePressed() {
 
-    let k = x*x*x + a*x + b;
-    
-    if (k > 0)
-        return Math.sqrt(k);
+    let x = mouseX;
+    let y = SSize - mouseY;
 
-    return 0;
+    x = floor(x * P / SSize);
+    y = floor(y * P / SSize);
 
-}
+    if (isOnCurve(x, y)) {
 
-function P(x) {
+        P1 = [x,y];
+        P2 = [-1, -1];
+        P3 = [-1, -1];
 
-    let a = points[1][0];
-    let b = points[1][1];
-
-    return x*x*x + a*x + b;
-
-}
-
-function P1(x) {
-
-    let a = points[1][0];
-
-    return 3*x*x + a;
-    
-}
-
-// Random entre -1 e 1
-const random = () => (Math.random() * 2) - 1
-const sortNumber = (a, b) => a - b
-
-
-function Roots() {
-
-    let a = points[1][0];
-
-    let r1 = -0.001;
-    let err = 0;
-    let i = 0;
-
-    do {
-    
-        let p1 = P1(r1);
-        if (p1 == 0) {
-            r1 = random()
-            continue;
-        }
-
-        err = P(r1) / p1;
-        r1 -= err * (1 + random() / 5);
-        i++;
-
-    } while (err*err > 0.00001 /*&& i < 1000000*/)
-
-    let A = 1;
-    let B = r1;
-    let C = r1*r1 + a;
-
-    //let delta = B*B - 4 * A * C;
-    let delta = -3 * r1*r1 - 4 * a;
-
-    if (delta < 0)
-        return [r1]
-    if (delta == 0)
-        return [r1, -B / 2].sort(sortNumber)
-    
-    let sdelta = Math.sqrt(delta)
-    return [r1, (-B - sdelta) / 2, (-B + sdelta) / 2].sort(sortNumber)
-
-}
-
-function mousePressed(event) {
-
-    const DIST = 15;
-
-    if (mouseX < 0 || mouseX > SSize) return;
-    if (mouseY < 0 || mouseY > SSize) return;
-
-    let mx = mouseX - SSize / 2;
-    let my = mouseY - SSize / 2;
-    my = -my;
-
-    for(let i = 0; i < points.length; i++) {
-
-        if (abs(mx - points[i][0]) < DIST && abs(my - points[i][1]) < DIST) {
-
-            selected = i;
-            dragPoint = true;
-            atualiza_tela = true;
-            return;
-
-        }
+        drawn = false;
+        pressing = true;
+        point_selected = false;
 
     }
-
-    if (event.button == 0) { // Primeiro botão do mouse
-
-        points.push([mx, my]);
-
-        if ((mx - XX)*(mx - XX) + (my - XY)*(my - XY) < XR * XR * 4)
-            trash = true;
-        else
-            trash = false;
-
-        selected = points.length - 1;
-        dragPoint = true;
-        atualiza_tela = true;
-
-    }
-
 
 }
 
 function mouseReleased() {
 
-    if (dragPoint) {
+    let x = mouseX;
+    let y = SSize - mouseY;
 
-        if(trash) points.splice(selected, 1);
+    x = floor(x * P / SSize);
+    y = floor(y * P / SSize);
 
-        selected = -1;
-        dragPoint = false;
-        trash = false;
-        atualiza_tela = true;
+    if (isOnCurve(x, y)) {
 
+        P2 = [x, y];
+        P3 = oper(P1, P2);
+
+        point_selected = true;
+        console.log(P1, P2, P3)
+
+    } else {
+
+        P1 = [-1, -1]
+    
     }
+  
+    drawn = false;
+    pressing = false;
+
 }
-
-function mouseDragged() {
-
-    if (dragPoint) {
-
-        var mx = mouseX
-        if (mx < 0) mx = 0;
-        if (mx > SSize) mx = SSize;
-
-        var my = mouseY
-        if (my < 0) my = 0;
-        if (my > SSize) my = SSize;
-
-        mx -= SSize / 2;
-        my -= SSize / 2;
-        my = -my;
-
-        if ((mx - XX)*(mx - XX) + (my - XY)*(my - XY) < XR * XR * 4)
-            trash = true;
-        else
-            trash = false;
-
-        points[selected][0] = mx;
-        points[selected][1] = my;
-
-        atualiza_tela = true;
-
-    }
-}
-
